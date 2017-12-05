@@ -163,7 +163,7 @@ class DataProcessor:
         squashed_events = self.squash_all_scroll_events(
             self.remove_all_invalid_scroll_event(events))
         grouped_events = self.groupByActivity(squashed_events)
-        write_activity_json_to_files(grouped_events, self.output_path)
+        write_activity_json_to_files(grouped_events, path=self.output_path)
 
 
 # sample json.

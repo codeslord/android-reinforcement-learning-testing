@@ -90,6 +90,7 @@ def random_test_with_model(device, times=1):
     Each file has all the events of one activity
     """
     dp = DataProcessor(recorda_output_path)
+    print(recorda_output_path)
     with open(recorda_input_path, 'r') as data_file:
         events = json.load(data_file)
     dp.process_all_events(events)
