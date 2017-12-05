@@ -1,2 +1,2 @@
-tqdm
-uiautomator
+tqdm>=4.19.4
+uiautomator>=0.3.2
