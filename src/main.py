@@ -27,6 +27,8 @@ hierarchy_output_path = "{}{}".format(output_path, 'hierarchy.xml')
 recorda_output_path = "{}recorda/".format(output_path)
 recorda_input_path = "{}recorda/{}".format(input_path, 'reany.json')
 
+kenlm_input_path = "{}kenlm/{}".format(input_path, 'h_PKDexActzzzzz.arpa')
+
 def is_out_of_app(activity):
     """Check is out of app."""
     print 'activity: ', activity
@@ -58,7 +60,7 @@ def back_to_app():
 
 def random_test(device, executor, observer, times=1):
     """Test the app randomly."""
-    selector = Selector()
+    selector = Selector(kenlm_input_path)
     for i in range(times):
         # dump the window hierarchy and save to local file "hierarchy.xml"
         device.dump(hierarchy_output_path)
@@ -96,7 +98,7 @@ def random_test_with_model(device, times=1):
     dp.process_all_events(events)
 
     prev_events_str = ""
-    '''
+
     for i in tqdm(range(times)):
         time.sleep(0.5)
         """
@@ -108,8 +110,9 @@ def random_test_with_model(device, times=1):
         # print '----gui dumped----'
 
         clickable_list = observer.get_all_actionable_events(hierarchy_output_path)
+
         current_activity = observer.get_current_activity(current_package)
-        # print 'current_activity:', current_activity
+        print ('current_activity:', current_activity)
 
         if is_launcher(current_activity):
             back_to_app()
@@ -121,15 +124,16 @@ def random_test_with_model(device, times=1):
         """
         Step 3: Get activity logs from Recorda or previous model builder and build a new model upon it
         """
-        if os.path.isfile(recorda_input_path + current_package+'.'+current_activity+'.json'):
-            with open('../output/'+current_package+'.'+current_activity+'.json') as df:
+        if os.path.isfile(recorda_input_path + current_package + '.' + current_activity + '.json'):
+            with open(recorda_input_path + current_package + '.' + current_activity + '.json') as df:
                 main_events = json.load(df)
             mb = ModelBuilder(main_events)
-            if not os.path.isfile("../output/"+current_activity+".arpa"):
+            if not os.path.isfile(output_path + current_activity + ".arpa"):
                 mb.create_klm_model_from_events(main_events, current_activity)
             try:
-                selector = Selector("../output/"+current_activity+".arpa")
-            except:
+                selector = Selector(output_path + current_activity + ".arpa")
+            except Exception as e:
+                print (e)
                 random_test(device, executor, observer)
                 continue
             onegram_hash_events = mb.h_events
@@ -151,8 +155,7 @@ def random_test_with_model(device, times=1):
 
             print 'select this one', selected.attrib, selector.hash_events[h_selected_event]
             if selected is not None:
-                executor.perform_action_with_hash(selected,
-                                        selector.hash_events[h_selected_event])
+                executor.perform_action_with_hash(selected, selector.hash_events[h_selected_event])
                 prev_events_str += ' ' + h_selected_event
                 prev_events_str = prev_events_str.strip()
                 xmlstr = ET.tostring(selected, encoding='utf8', method='xml')
@@ -160,7 +163,7 @@ def random_test_with_model(device, times=1):
             # print '1g hash', onegram_hash_events, h_selected_event
         else:
             random_test(device, executor, observer)
-    '''
+
     print 'FINISHED'
 
 

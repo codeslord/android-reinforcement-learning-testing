@@ -6,7 +6,7 @@ import copy
 
 
 class GuiObserver:
-    """Gui observer."""
+    """Gui observer.py."""
 
     def __init__(self, device=Device('60e701c935a2')):
         """Initialize with android automator's device."""
@@ -15,15 +15,15 @@ class GuiObserver:
         else:
             print 'ERROR: please input automator.Device as param.'
 
-    def dump_gui(self, dumppath):
+    def dump_gui(self, path):
         """Dump gui hierarchy from device and save as *.xml format."""
         dd = self.device.dump().encode('utf-8')
         tree = ET.ElementTree(ET.fromstring(dd))
         self.passing_actionable_to_children(tree.getroot(),
                                             False, False, False)
         print 'type ', type(tree)
-        tree.write(dumppath)
-        # self.device.dump(dumppath)
+        tree.write(path)
+        # self.device.dump(path)
 
     def dup_event(self, actionable_event):
         """Clickable+scrollable = clickable, scrollable."""
