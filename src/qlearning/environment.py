@@ -24,12 +24,12 @@ class Environment(object):
     def set_current_state(self, state):
         self.current_state = state
         if state not in self.states:
-            self.states[state.name] = state
-            self.actions[state.name] = state.actions
+            self.states[state.activity] = state
+            self.actions[state.activity] = state.actions
             self.q_value.update(state.q_value)
 
     def get_available_action(self):
-        return self.actions[self.current_state.name]
+        return self.actions[self.current_state.activity]
 
     def add_reward(self, old_state, new_state):
         similarity_counter = 0
@@ -40,13 +40,13 @@ class Environment(object):
         self.reward[self.get_reward_key(old_state, new_state)] = reward
 
     def get_reward_key(self, old_state, new_state):
-        return "{}:{}".format(old_state.name, new_state.name)
+        return "{}:{}".format(old_state.activity, new_state.activity)
 
 
     def add_state(self, state):
-        if state.name not in self.states:
-            self.states[state.name] = state
-            self.actions[state.name] = state.actions
+        if state.activity not in self.states:
+            self.states[state.activity] = state
+            self.actions[state.activity] = state.actions
 
     def update_q(self):
         if self.current_state and self.next_state:

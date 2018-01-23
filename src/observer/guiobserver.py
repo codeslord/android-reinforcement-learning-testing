@@ -136,6 +136,8 @@ class GuiObserver:
         output = check_output(['adb', 'shell', 'dumpsys', 'window',
                                'windows', '|', 'grep', '-E',
                                "'mCurrentFocus'"])
+        print("output")
+        print(str(output))
         cur_activity = output.split('/')[-1].replace(current_package+'.', '').split('}')[0]
         print("current activity:")
         print(cur_activity)
