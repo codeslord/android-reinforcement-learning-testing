@@ -1,2 +1,3 @@
 tqdm>=4.19.4
 uiautomator>=0.3.2
+xmltodict>=0.11.0

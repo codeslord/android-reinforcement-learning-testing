@@ -10,11 +10,15 @@ from uiautomator import Device
 from xml.etree import cElementTree as ET
 from dataprocessor import DataProcessor
 from executor import Executor
-from guiobserver import GuiObserver
+from observer.guiobserver import GuiObserver
 from modelbuilder import ModelBuilder
 from selector import Selector
 from subprocess import check_output
 from utils import *
+from qlearning.environment import Environment
+from qlearning.state import State
+import random
+
 logger = logging.getLogger(__name__)
 current_package = "org.liberty.android.fantastischmemo"
 # current_package = "com.irahul.worldclock"
@@ -81,10 +85,46 @@ def random_test(device, executor, observer, times=1):
                 executor.perform_action(event)
 
 
+def random_strategy(device, step=5, episode=50):
+    env = Environment()
+    observer = GuiObserver(device)
+    executor = Executor(device)
+    for j in tqdm(range(episode)):
+        print("Episode {}".format(j))
+        for i in tqdm(range(step)):
+            time.sleep(0.5)
+            observer.dump_gui(hierarchy_output_path)
+            clickable_list = observer.get_all_actionable_events(hierarchy_output_path)
+            current_state = State(observer.get_current_activity(current_package), clickable_list)
+
+            if is_launcher(current_state.activity):
+                back_to_app()
+                continue
+            elif is_out_of_app(current_state.activity):
+                executor.perform_back()
+                continue
+
+            env.set_current_state(current_state)
+            env.current_action = random.choice(env.get_available_action())
+
+            if not env.current_action:
+                x = randint(0, 540)
+                y = randint(0, 540)
+                executor.perform_random_click(x, y)
+            else:
+                print("perform {}".format(env.current_action.attrib))
+                executor.perform_action(env.current_action)
+
+            time.sleep(0.5)
+            env.next_state = State(observer.get_current_activity(current_package),observer.get_all_actionable_events(hierarchy_output_path))
+            print(env.next_state.activity)
+            env.update_q()
+
+
+
+
 def random_test_with_model(device, times=1):
     """Random test with model."""
-    executor = Executor(device)
-    observer = GuiObserver(device)
 
     """ 
     Step 1: Process usage logs from Recorda 
@@ -98,6 +138,9 @@ def random_test_with_model(device, times=1):
     dp.process_all_events(events)
 
     prev_events_str = ""
+
+    observer = GuiObserver(device)
+    executor = Executor(device)
 
     for i in tqdm(range(times)):
         time.sleep(0.5)
@@ -124,6 +167,7 @@ def random_test_with_model(device, times=1):
         """
         Step 3: Get activity logs from Recorda or previous model builder and build a new model upon it
         """
+
         if os.path.isfile(recorda_input_path + current_package + '.' + current_activity + '.json'):
             with open(recorda_input_path + current_package + '.' + current_activity + '.json') as df:
                 main_events = json.load(df)
@@ -195,6 +239,7 @@ if __name__ == "__main__":
         os.mkdir(output_path)
     if not os.path.isdir(input_path):
         os.mkdir(input_path)
+    random_strategy(d)
     # random_test(d, executor, 10)
-    random_test_with_model(d, times=50)
+    # random_test_with_model(d, times=50)
     logger.info('----DONE----')

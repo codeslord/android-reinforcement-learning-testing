@@ -48,11 +48,11 @@ class GuiObserver:
             res += [dup]
         return res
 
-    def get_all_clickable_events(self, tree):
-        """Get all clickable events from given xml tree."""
-        allclickable = tree.findall(".//*[@clickable='true']")
-
-        return allclickable
+    # def get_all_clickable_events(self, tree):
+    #     """Get all clickable events from given xml tree."""
+    #     allclickable = tree.findall(".//*[@clickable='true']")
+    #
+    #     return allclickable
 
     def get_actionable_events(self, event_type, tree):
         """Get all given event_type event."""
@@ -60,9 +60,9 @@ class GuiObserver:
         all_given_events = tree.findall(rexstr)
         return all_given_events
 
-    def get_all_actionable_events(self, hierarchyPath):
+    def get_all_actionable_events(self, hierarchy_path):
         """Get all actionable events from given hierarchy.xml path."""
-        tree = self.get_tree_from_dump(hierarchyPath)
+        tree = self.get_tree_from_dump(hierarchy_path)
         event_types = ["clickable",
                        "long-clickable",
                        #    "focusable",
@@ -80,8 +80,8 @@ class GuiObserver:
 
         return dup_actionable_events
 
-    def gen_back_event(self):
-        """WIP: Generate click 'back button' on android device event."""
+    # def gen_back_event(self):
+    #     """WIP: Generate click 'back button' on android device event."""
 
     def get_tree_from_dump(self, hierarchyPath):
         """Get tree from dump hierarchy path."""
@@ -137,6 +137,9 @@ class GuiObserver:
                                'windows', '|', 'grep', '-E',
                                "'mCurrentFocus'"])
         cur_activity = output.split('/')[-1].replace(current_package+'.', '').split('}')[0]
+        print("current activity:")
+        print(cur_activity)
+        print(output)
         return cur_activity
 
     def passing_actionable_to_children(self, root, clickable, scrollable, longclickable):
