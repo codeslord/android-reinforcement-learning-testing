@@ -1,5 +1,3 @@
-import xmltodict
-
 class State(object):
     activity = ""
     actions = None
@@ -11,8 +9,7 @@ class State(object):
         self.actions = clickable_components
         for c in self.actions:
             self.q_value[get_state_component_key(self, c)] = 0.5
-            print("setting q value for {} = 0.5".format(get_state_component_key(self, c)))
 
 
 def get_state_component_key(state, component):
-    return "{}:{}|{}|{}".format(state.activity, component.attrib["resource-id"], component.attrib["class"], component.attrib["text"])
+    return "{}||{}|{}|{}".format(state.activity, component.attrib["resource-id"], component.attrib["class"], component.attrib["text"]).encode('utf-8').strip()

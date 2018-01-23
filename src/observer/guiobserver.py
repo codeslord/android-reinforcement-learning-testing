@@ -21,7 +21,6 @@ class GuiObserver:
         tree = ET.ElementTree(ET.fromstring(dd))
         self.passing_actionable_to_children(tree.getroot(),
                                             False, False, False)
-        print 'type ', type(tree)
         tree.write(path)
         # self.device.dump(path)
 
@@ -136,12 +135,7 @@ class GuiObserver:
         output = check_output(['adb', 'shell', 'dumpsys', 'window',
                                'windows', '|', 'grep', '-E',
                                "'mCurrentFocus'"])
-        print("output")
-        print(str(output))
         cur_activity = output.split('/')[-1].replace(current_package+'.', '').split('}')[0]
-        print("current activity:")
-        print(cur_activity)
-        print(output)
         return cur_activity
 
     def passing_actionable_to_children(self, root, clickable, scrollable, longclickable):

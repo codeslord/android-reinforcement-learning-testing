@@ -20,8 +20,8 @@ from qlearning.state import State
 import random
 
 logger = logging.getLogger(__name__)
-current_package = "org.liberty.android.fantastischmemo"
-# current_package = "com.irahul.worldclock"
+# current_package = "org.liberty.android.fantastischmemo"
+current_package = "com.irahul.worldclock"
 # current_package = "net.fercanet.LNM"
 output_path = "../output/{}/".format(current_package)
 input_path = "../input/{}/".format(current_package)
@@ -85,12 +85,12 @@ def random_test(device, executor, observer, times=1):
                 executor.perform_action(event)
 
 
-def random_strategy(device, step=5, episode=50):
+def random_strategy(device, step=5, episode=30):
     env = Environment()
     observer = GuiObserver(device)
     executor = Executor(device)
     for j in tqdm(range(episode)):
-        print("Episode {}".format(j))
+        print("------------Episode {}---------------".format(j))
         for i in tqdm(range(step)):
             time.sleep(0.5)
             observer.dump_gui(hierarchy_output_path)
@@ -112,14 +112,15 @@ def random_strategy(device, step=5, episode=50):
                 y = randint(0, 540)
                 executor.perform_random_click(x, y)
             else:
-                print("perform {}".format(env.current_action.attrib))
+                print("Perform {}".format(env.current_action.attrib))
                 executor.perform_action(env.current_action)
 
             time.sleep(0.5)
             env.next_state = State(observer.get_current_activity(current_package),observer.get_all_actionable_events(hierarchy_output_path))
-            print(env.next_state.activity)
+            print("Transition from {} to {}".format(env.current_state.activity, env.next_state.activity))
+            env.add_reward(env.current_state, env.next_state)
             env.update_q()
-
+    print(env.q_value)
 
 
 
