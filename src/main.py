@@ -20,9 +20,9 @@ import operator
 import random
 
 logger = logging.getLogger(__name__)
-current_package = "org.liberty.android.fantastischmemo"
+# current_package = "org.liberty.android.fantastischmemo"
 # current_package = "com.irahul.worldclock"
-# current_package = "net.fercanet.LNM"
+current_package = "net.fercanet.LNM"
 output_path = "../output/{}/".format(current_package)
 input_path = "../input/{}/".format(current_package)
 
@@ -161,7 +161,6 @@ def epsilon_greedy_strategy(device, epsilon, step=5, episode=10):
                 continue
 
             env.set_current_state(activity, clickable_list)
-            print(env.is_known_state(env.current_state))
 
             if len(env.get_available_action()):
                 r = random.uniform(0, 1)
@@ -192,9 +191,10 @@ def epsilon_greedy_strategy(device, epsilon, step=5, episode=10):
         random_state = env.get_random_state()
         jump_to_activity(random_state.activity)
     print("#############STATE###########")
-    print(env.states)
+    for s in env.states.values():
+        print s
     print("QQQQQQQQQQQQQQQQQQQQQQQQQ")
-    print(env.q_value)
+    print(env.q_value.values())
 
 
 def random_test_with_model(device, times=1):

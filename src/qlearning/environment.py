@@ -8,7 +8,7 @@ DEFAULT_REWARD = 0.1
 
 class Environment(object):
 
-    def __init__(self, alpha=1., gamma=0.9):
+    def __init__(self, alpha= 1.0, gamma=0.9):
         self.states = {}  # state id : state
         self.actions = {}  # hash_action : action
         self.reward = {}  # old_state|new_state : value
@@ -61,12 +61,15 @@ class Environment(object):
         return "{}:{}".format(old_state.id, new_state.id)
 
     def add_reward(self, old_state, new_state):
-        similarity_counter = 0
-        for component in new_state.actions:
-            if component in old_state.actions:
-                similarity_counter += 1
+        paired = zip(map(operator.itemgetter(0), old_state.hash_actions.values()),
+                     map(operator.itemgetter(0), new_state.hash_actions.values()))
+        shared_items = [(x, y) for (x, y) in paired if x == y]
+        similarity_counter = len(shared_items)
+        # for component in new_state.actions:
+        #     if component in old_state.actions:
+        #         similarity_counter += 1
         if len(new_state.actions):
-            reward = (len(new_state.actions) - similarity_counter)/len(new_state.actions)
+            reward = (len(new_state.actions) - similarity_counter)/float(len(new_state.actions))
         else:
             reward = DEFAULT_REWARD
         self.reward[self.get_reward_key(old_state, new_state)] = reward
@@ -75,9 +78,12 @@ class Environment(object):
         if self.current_state and self.next_state:
             key = get_state_hash_action_key(self.current_state, self.current_action)
             if key in self.q_value:
+                print(self.q_value[key])
+                print(self.reward[self.get_reward_key(self.current_state, self.next_state)])
+                print(max(list(self.next_state.q_value.values())))
                 value = self.q_value[key] + self.alpha*(self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma*max(list(self.next_state.q_value.values())))
             else:
-                value = DEFAULT_Q + self.alpha*(self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma*max(list(self.next_state.q_value.values())))
+                value = DEFAULT_Q + self.alpha * (self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma * max(list(self.next_state.q_value.values())))
             self.q_value[key] = value
             self.current_state.update_q(self.current_action, value)
             print("Updating q value for {} = {}".format(key, value))

@@ -1,7 +1,7 @@
 from simplifier import Simplifier
 import operator
 import uuid
-DEFAULT_Q = 0.5
+DEFAULT_Q = 0.1
 
 class State(object):
     id = None
@@ -25,10 +25,21 @@ class State(object):
     def equal(self, state):
         if state.activity != self.activity:
             return False
-        shared_items = set(map(operator.itemgetter(1), self.hash_actions.values())) & set(map(operator.itemgetter(1), state.hash_actions.values()))
+        paired = zip(map(operator.itemgetter(0), self.hash_actions.values()), map(operator.itemgetter(0), state.hash_actions.values()))
+        shared_items = [(x, y) for (x, y) in paired if x == y]
         if len(shared_items) != len(self.hash_actions):
             return False
         return True
+
+    def __str__(self):
+        action_str = ""
+        action_sim = map(operator.itemgetter(0), self.hash_actions.values())
+        for a in action_sim:
+            action_str += str(a)
+        return "{} - {} actions: {}".format(self.activity, len(self.hash_actions), action_str)
+
+
+
 
 def get_state_hash_action_key(state, hash_action):
     return "{}||{}".format(state.id, hash_action).encode('utf-8').strip()
