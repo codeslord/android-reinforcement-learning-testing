@@ -96,8 +96,6 @@ class Simplifier:
 
     def simplification_gui_event(self, event):
         """Simplify a gui event."""
-        simplify_event = ""
-
         # DEBUG
         if (event.attrib["clickable"] == 'true' and
            event.attrib["scrollable"] == 'true'):
@@ -114,12 +112,12 @@ class Simplifier:
         # elif event.attrib["eventType"] == 'TYPE_VIEW_SELECTED':
             # simplify_event = self.simplify_gui_select_event(event)
         else:
-            simplify_event = ['xxxxxxxxx', event.attrib["clickable"]]
+            simplify_event = ['xxxxxxxxx', event.attrib["clickable"], event]
 
         return simplify_event
 
     def simplify_gui_click_event(self, guievent):
-        """Simplify an event that aqquired from hierarchy dump."""
+        """Simplify an event that acquired from hierarchy dump."""
         sim_gui_event = {}
         sim_gui_event["eventType"] = "TYPE_VIEW_CLICKED"
         sim_gui_event["eventText"] = guievent.attrib["text"]
@@ -135,7 +133,7 @@ class Simplifier:
 
         hash_e = "cl_" + self.hash_event(json.dumps(sim_gui_event))
 
-        return [hash_e, sim_gui_event]
+        return [hash_e, sim_gui_event, guievent]
 
     def simplify_gui_longclick_event(self, guievent):
         """Simplify an event that aqquired from hierarchy dump."""
@@ -154,7 +152,7 @@ class Simplifier:
 
         hash_e = "lcl_" + self.hash_event(json.dumps(sim_gui_event))
 
-        return [hash_e, sim_gui_event]
+        return [hash_e, sim_gui_event, guievent]
 
     def simplify_gui_scroll_event(self, guievent):
         """Simplify an event that aqquired from hierarchy dump."""
@@ -180,10 +178,10 @@ class Simplifier:
                 sim_gui_event["resource-id"] = "noneId"
         hash_e = "sc_" + self.hash_event(json.dumps(sim_gui_event))
 
-        return [hash_e, sim_gui_event]
+        return [hash_e, sim_gui_event, guievent]
 
     def simplify_gui_select_event(self, guievent):
         """Simplify a select event that aqquired from hierarchy dump."""
         sim_gui_event = guievent
         hash_e = "se_" + self.hash_event(json.dumps(sim_gui_event))
-        return [hash_e, sim_gui_event]
+        return [hash_e, sim_gui_event, guievent]

@@ -16,7 +16,7 @@ from selector import Selector
 from subprocess import check_output
 from utils import *
 from qlearning.environment import Environment
-from qlearning.state import State
+import operator
 import random
 
 logger = logging.getLogger(__name__)
@@ -34,6 +34,7 @@ recorda_input_path = "{}recorda/{}".format(input_path, 'reany.json')
 kenlm_input_path = "{}kenlm/{}".format(input_path, 'h_PKDexActzzzzz.arpa')
 alpha = 1.
 gamma = 0.9
+epsilon =0.8
 
 def is_out_of_app(activity):
     """Check is out of app."""
@@ -92,7 +93,7 @@ def random_test(device, executor, observer, times=1):
                 executor.perform_action(event)
 
 
-def random_strategy(device, step=5, episode=10):
+def random_strategy(device, step=10, episode=10):
     env = Environment(alpha, gamma)
     observer = GuiObserver(device)
     executor = Executor(device)
@@ -124,7 +125,8 @@ def random_strategy(device, step=5, episode=10):
                 executor.perform_action(env.current_action)
 
             time.sleep(0.5)
-            env.set_next_state(observer.get_current_activity(current_package),observer.get_all_actionable_events(hierarchy_output_path))
+            env.set_next_state(observer.get_current_activity(current_package),
+                               observer.get_all_actionable_events(hierarchy_output_path))
             print("{} ------> {}".format(env.current_state.activity, env.next_state.activity))
             env.add_reward(env.current_state, env.next_state)
             env.update_q()
@@ -139,8 +141,8 @@ def random_strategy(device, step=5, episode=10):
     print(env.q_value)
 
 
-def epsilon_greedy_strategy(device, step=5, episode=30, epsilon_greedy=0.8):
-    env = Environment()
+def epsilon_greedy_strategy(device, epsilon, step=10, episode=20):
+    env = Environment(alpha, gamma)
     observer = GuiObserver(device)
     executor = Executor(device)
     for j in tqdm(range(episode)):
@@ -159,27 +161,38 @@ def epsilon_greedy_strategy(device, step=5, episode=30, epsilon_greedy=0.8):
                 continue
 
             env.set_current_state(activity, clickable_list)
+
             if len(env.get_available_action()):
-                env.current_action = random.choice(env.get_available_action())
+                r = random.uniform(0, 1)
+                if r > epsilon:
+                    env.current_action = random.choice(env.get_available_action().keys())
+                else:
+                    max_q_key = max(env.q_value.iteritems(), key=operator.itemgetter(1))[0]
+                    hash_action = max_q_key.split("||")[1]
+                    env.current_action = hash_action
 
             if not env.current_action:
                 x = randint(0, 540)
                 y = randint(0, 540)
                 executor.perform_random_click(x, y)
             else:
-                print("Perform {}".format(env.current_action.attrib))
-                executor.perform_action(env.current_action)
+                # print("Perform {}".format(env.current_action.attrib))
+                executor.perform_action(env.actions[env.current_action][1])
 
             time.sleep(0.5)
-            env.set_next_state(observer.get_current_activity(current_package),observer.get_all_actionable_events(hierarchy_output_path))
-            print("Transition from {} to {}".format(env.current_state.activity, env.next_state.activity))
+            env.set_next_state(observer.get_current_activity(current_package),
+                               observer.get_all_actionable_events(hierarchy_output_path))
+            print("{} ------> {}".format(env.current_state.activity, env.next_state.activity))
             env.add_reward(env.current_state, env.next_state)
             env.update_q()
         """ 
         End of and episode, start from a random state from the list of states that have been explored
         """
         random_state = env.get_random_state()
-        jump_to_activity(random_state)
+        jump_to_activity(random_state.activity)
+    print("#############STATE###########")
+    print(env.states)
+    print("QQQQQQQQQQQQQQQQQQQQQQQQQ")
     print(env.q_value)
 
 
@@ -299,7 +312,8 @@ if __name__ == "__main__":
         os.mkdir(output_path)
     if not os.path.isdir(input_path):
         os.mkdir(input_path)
-    random_strategy(d)
+    # random_strategy(d)
+    epsilon_greedy_strategy(d, epsilon)
     # random_test(d, executor, 10)
     # random_test_with_model(d, times=50)
     logger.info('----DONE----')

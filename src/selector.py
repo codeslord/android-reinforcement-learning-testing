@@ -1,9 +1,9 @@
 """The event selector class."""
 import random
-from simplifier import Simplifier
 from bisect import bisect
 import kenlm
 
+from qlearning.simplifier import Simplifier
 
 class Selector:
     """Select the event from GUI and model."""

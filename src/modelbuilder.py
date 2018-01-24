@@ -1,7 +1,8 @@
 """Model builder class."""
 from subprocess import call
+
+from qlearning.simplifier import Simplifier
 from utils import *
-from simplifier import Simplifier
 
 
 class ModelBuilder:
