@@ -9,7 +9,7 @@ DEFAULT_REWARD = 0.1
 class Environment(object):
 
     def __init__(self, alpha=1., gamma=0.9):
-        self.states = {}  # activity name : state
+        self.states = {}  # state id : state
         self.actions = {}  # hash_action : action
         self.reward = {}  # old_state|new_state : value
         self.q_value = {}  # state| hash_action : value
@@ -19,36 +19,46 @@ class Environment(object):
         self.alpha = alpha
         self.gamma = gamma
 
+    def is_known_state(self, state):
+        known_state = None
+        for s in self.states.values():
+            if s.equal(state):
+                known_state = s
+                print("Found existing state !!!!!")
+        return known_state
+
     def add_state(self, state):
-        if state.activity not in self.states:
+        if not self.is_known_state(state):
             """ How to have an unique id for a view ?"""
-            self.states[state.activity] = state
+            self.states[state.id] = state
             self.actions.update(hash_all_gui_event(state.actions))
             self.q_value.update(state.q_value)
             print("Add state")
             print(state.activity)
 
     def set_current_state(self, activity, clickable_list):
-        if activity in self.states:
-            self.current_state = self.states[activity]
+        s = State(activity, clickable_list)
+        known_state = self.is_known_state(s)
+        if known_state:
+            self.current_state = known_state
         else:
-            state = State(activity, clickable_list)
-            self.add_state(state)
-            self.current_state = state
+            self.add_state(s)
+            self.current_state = s
 
     def set_next_state(self, activity, clickable_list):
-        if activity in self.states:
-            self.next_state = self.states[activity]
+        s = State(activity, clickable_list)
+        known_state = self.is_known_state(s)
+        if known_state:
+            self.next_state = known_state
         else:
-            state = State(activity, clickable_list)
-            self.add_state(state)
-            self.next_state = state
+            self.add_state(s)
+            self.next_state = s
 
     def get_available_action(self):
         return self.current_state.hash_actions
 
     def get_reward_key(self, old_state, new_state):
-        return "{}:{}".format(old_state.activity, new_state.activity)
+        return "{}:{}".format(old_state.id, new_state.id)
 
     def add_reward(self, old_state, new_state):
         similarity_counter = 0

@@ -93,7 +93,7 @@ def random_test(device, executor, observer, times=1):
                 executor.perform_action(event)
 
 
-def random_strategy(device, step=10, episode=10):
+def random_strategy(device, step=5, episode=10):
     env = Environment(alpha, gamma)
     observer = GuiObserver(device)
     executor = Executor(device)
@@ -141,7 +141,7 @@ def random_strategy(device, step=10, episode=10):
     print(env.q_value)
 
 
-def epsilon_greedy_strategy(device, epsilon, step=10, episode=20):
+def epsilon_greedy_strategy(device, epsilon, step=5, episode=10):
     env = Environment(alpha, gamma)
     observer = GuiObserver(device)
     executor = Executor(device)
@@ -161,6 +161,7 @@ def epsilon_greedy_strategy(device, epsilon, step=10, episode=20):
                 continue
 
             env.set_current_state(activity, clickable_list)
+            print(env.is_known_state(env.current_state))
 
             if len(env.get_available_action()):
                 r = random.uniform(0, 1)

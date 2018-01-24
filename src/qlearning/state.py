@@ -1,14 +1,17 @@
 from simplifier import Simplifier
-
+import operator
+import uuid
 DEFAULT_Q = 0.5
 
 class State(object):
+    id = None
     activity = ""
     actions = []
     hash_actions = {}
     q_value = {}
 
     def __init__(self, activity_name, clickable_components):
+        self.id = uuid.uuid4()
         self.activity = activity_name
         self.actions = clickable_components
         for c in self.actions:
@@ -19,15 +22,22 @@ class State(object):
         key = get_state_hash_action_key(self, hash_action)
         self.q_value[key] = value
 
+    def equal(self, state):
+        if state.activity != self.activity:
+            return False
+        shared_items = set(map(operator.itemgetter(1), self.hash_actions.values())) & set(map(operator.itemgetter(1), state.hash_actions.values()))
+        if len(shared_items) != len(self.hash_actions):
+            return False
+        return True
 
 def get_state_hash_action_key(state, hash_action):
-    return "{}||{}".format(state.activity, hash_action).encode('utf-8').strip()
+    return "{}||{}".format(state.id, hash_action).encode('utf-8').strip()
 
 
 def get_state_action_key(state, component):
     simplifier = Simplifier()
     hash_action = simplifier.simplification_gui_event(component)[0]
-    return "{}||{}".format(state.activity, hash_action).encode('utf-8').strip()
+    return "{}||{}".format(state.id, hash_action).encode('utf-8').strip()
 
 
 def hash_all_gui_event(actionable_events):
