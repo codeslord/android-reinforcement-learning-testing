@@ -20,8 +20,8 @@ from qlearning.state import State
 import random
 
 logger = logging.getLogger(__name__)
-# current_package = "org.liberty.android.fantastischmemo"
-current_package = "com.irahul.worldclock"
+current_package = "org.liberty.android.fantastischmemo"
+# current_package = "com.irahul.worldclock"
 # current_package = "net.fercanet.LNM"
 output_path = "../output/{}/".format(current_package)
 input_path = "../input/{}/".format(current_package)
@@ -32,6 +32,8 @@ recorda_output_path = "{}recorda/".format(output_path)
 recorda_input_path = "{}recorda/{}".format(input_path, 'reany.json')
 
 kenlm_input_path = "{}kenlm/{}".format(input_path, 'h_PKDexActzzzzz.arpa')
+alpha = 1.
+gamma = 0.9
 
 def is_out_of_app(activity):
     """Check is out of app."""
@@ -47,7 +49,7 @@ def is_out_of_app(activity):
 def is_launcher(activity):
     """Check is out of app."""
     # print 'activity: ', activity
-    if activity == 'com.android.launcher2.Launcher' or  activity == "com.jiubang.golauncher.GOLauncher":
+    if activity == 'com.android.launcher2.Launcher' or activity == "com.jiubang.golauncher.GOLauncher" or activity == 'com.android.launcher3.Launcher':
         append_string_to_file("LEAVE APP LAUNCHER!")
         return True
     else:
@@ -60,6 +62,11 @@ def back_to_app():
     check_output(['adb', 'shell', 'am', 'instrument',
                  '-e', 'coverage', 'true',
                   '{}/{}.EmmaInstrument.EmmaInstrumentation'.format(current_package, current_package)])
+
+
+def jump_to_activity(activity):
+    output = check_output(['adb', 'shell', 'am', 'start', '-n', '{}/.{}'.format(current_package, activity)])
+    print (output)
 
 
 def random_test(device, executor, observer, times=1):
@@ -85,7 +92,54 @@ def random_test(device, executor, observer, times=1):
                 executor.perform_action(event)
 
 
-def random_strategy(device, step=5, episode=30):
+def random_strategy(device, step=5, episode=10):
+    env = Environment(alpha, gamma)
+    observer = GuiObserver(device)
+    executor = Executor(device)
+    for j in tqdm(range(episode)):
+        print("------------Episode {}---------------".format(j))
+        for i in tqdm(range(step)):
+            time.sleep(0.5)
+            observer.dump_gui(hierarchy_output_path)
+            activity = observer.get_current_activity(current_package)
+            clickable_list = observer.get_all_actionable_events(hierarchy_output_path)
+
+            if is_launcher(activity):
+                back_to_app()
+                continue
+            elif is_out_of_app(activity):
+                executor.perform_back()
+                continue
+
+            env.set_current_state(activity, clickable_list)
+            if len(env.get_available_action()):
+                env.current_action = random.choice(env.get_available_action())
+
+            if not env.current_action:
+                x = randint(0, 540)
+                y = randint(0, 540)
+                executor.perform_random_click(x, y)
+            else:
+                # print("Perform {}".format(env.current_action.attrib))
+                executor.perform_action(env.current_action)
+
+            time.sleep(0.5)
+            env.set_next_state(observer.get_current_activity(current_package),observer.get_all_actionable_events(hierarchy_output_path))
+            print("{} ------> {}".format(env.current_state.activity, env.next_state.activity))
+            env.add_reward(env.current_state, env.next_state)
+            env.update_q()
+        """ 
+        End of and episode, start from a random state from the list of states that have been explored
+        """
+        random_state = env.get_random_state()
+        jump_to_activity(random_state.activity)
+    print("#############STATE###########")
+    print(env.states)
+    print("QQQQQQQQQQQQQQQQQQQQQQQQQ")
+    print(env.q_value)
+
+
+def epsilon_greedy_strategy(device, step=5, episode=30, epsilon_greedy=0.8):
     env = Environment()
     observer = GuiObserver(device)
     executor = Executor(device)
@@ -94,18 +148,19 @@ def random_strategy(device, step=5, episode=30):
         for i in tqdm(range(step)):
             time.sleep(0.5)
             observer.dump_gui(hierarchy_output_path)
+            activity = observer.get_current_activity(current_package)
             clickable_list = observer.get_all_actionable_events(hierarchy_output_path)
-            current_state = State(observer.get_current_activity(current_package), clickable_list)
 
-            if is_launcher(current_state.activity):
+            if is_launcher(activity):
                 back_to_app()
                 continue
-            elif is_out_of_app(current_state.activity):
+            elif is_out_of_app(activity):
                 executor.perform_back()
                 continue
 
-            env.set_current_state(current_state)
-            env.current_action = random.choice(env.get_available_action())
+            env.set_current_state(activity, clickable_list)
+            if len(env.get_available_action()):
+                env.current_action = random.choice(env.get_available_action())
 
             if not env.current_action:
                 x = randint(0, 540)
@@ -116,12 +171,16 @@ def random_strategy(device, step=5, episode=30):
                 executor.perform_action(env.current_action)
 
             time.sleep(0.5)
-            env.next_state = State(observer.get_current_activity(current_package),observer.get_all_actionable_events(hierarchy_output_path))
+            env.set_next_state(observer.get_current_activity(current_package),observer.get_all_actionable_events(hierarchy_output_path))
             print("Transition from {} to {}".format(env.current_state.activity, env.next_state.activity))
             env.add_reward(env.current_state, env.next_state)
             env.update_q()
+        """ 
+        End of and episode, start from a random state from the list of states that have been explored
+        """
+        random_state = env.get_random_state()
+        jump_to_activity(random_state)
     print(env.q_value)
-
 
 
 def random_test_with_model(device, times=1):
