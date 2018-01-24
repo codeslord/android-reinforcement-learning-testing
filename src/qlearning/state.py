@@ -3,6 +3,7 @@ import operator
 import uuid
 DEFAULT_Q = 0.1
 
+
 class State(object):
     id = None
     activity = ""
@@ -37,8 +38,6 @@ class State(object):
         for a in action_sim:
             action_str += str(a)
         return "{} - {} actions: {}".format(self.activity, len(self.hash_actions), action_str)
-
-
 
 
 def get_state_hash_action_key(state, hash_action):

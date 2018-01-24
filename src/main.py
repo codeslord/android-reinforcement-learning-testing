@@ -40,7 +40,7 @@ epsilon_greedy = 0.8
 def is_out_of_app(activity):
     """Check is out of app."""
     print 'activity: ', activity
-    if activity == 'com.android.systemui.recents.RecentsActivity' or (activity == 'com.android.browser') or (activity == 'com.android.browser.BrowserActivity') or ('com.google.android' in activity) or ('com.android' in activity):
+    if ('com.google.android' in activity) or ('com.android' in activity):
 
         append_string_to_file("LEAVE APP!")
         return True
@@ -106,31 +106,32 @@ def random_strategy(device, step=5, episode=10):
             activity = observer.get_current_activity(current_package)
             clickable_list = observer.get_all_actionable_events(hierarchy_output_path)
 
-            if is_launcher(activity):
+            if is_launcher(activity) or 'Application Error' in activity:
                 back_to_app()
                 continue
             elif is_out_of_app(activity):
                 executor.perform_back()
                 continue
-
-            env.set_current_state(activity, clickable_list)
-            if len(env.get_available_action()):
-                env.current_action = random.choice(env.get_available_action())
-
-            if not env.current_action:
-                x = randint(0, 540)
-                y = randint(0, 540)
-                executor.perform_random_click(x, y)
             else:
-                # print("Perform {}".format(env.current_action.attrib))
-                executor.perform_action(env.current_action)
 
-            time.sleep(0.5)
-            env.set_next_state(observer.get_current_activity(current_package),
-                               observer.get_all_actionable_events(hierarchy_output_path))
-            print("{} ------> {}".format(env.current_state.activity, env.next_state.activity))
-            env.add_reward(env.current_state, env.next_state)
-            env.update_q()
+                env.set_current_state(activity, clickable_list)
+                if len(env.get_available_action()):
+                    env.current_action = random.choice(env.get_available_action())
+
+                if not env.current_action:
+                    x = randint(0, 540)
+                    y = randint(0, 540)
+                    executor.perform_random_click(x, y)
+                else:
+                    # print("Perform {}".format(env.current_action.attrib))
+                    executor.perform_action(env.current_action)
+
+                time.sleep(0.5)
+                env.set_next_state(observer.get_current_activity(current_package),
+                                   observer.get_all_actionable_events(hierarchy_output_path))
+                print("{} ------> {}".format(env.current_state.activity, env.next_state.activity))
+                env.add_reward(env.current_state, env.next_state)
+                env.update_q()
         """ 
         End of and episode, start from a random state from the list of states that have been explored
         """
@@ -151,13 +152,13 @@ def epsilon_greedy_strategy(device, epsilon, step=5, episode=1000):
     executor = Executor(device)
     for j in tqdm(range(episode)):
         print("------------Episode {}---------------".format(j))
-        for i in tqdm(range(step)):
+        for i in range(step):
             time.sleep(0.5)
             observer.dump_gui(hierarchy_output_path)
             activity = observer.get_current_activity(current_package)
             clickable_list = observer.get_all_actionable_events(hierarchy_output_path)
 
-            if is_launcher(activity):
+            if is_launcher(activity) or 'Application Error' in activity:
                 back_to_app()
                 continue
             elif is_out_of_app(activity):

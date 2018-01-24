@@ -128,7 +128,7 @@ class Executor:
         """Perform an action base on event type."""
         if event.attrib["clickable"] == 'true':
             if 'Text' in event.attrib["class"]:
-                print '------contain text-------'
+                # print '------contain text-------'
                 return self.perform_click_and_text(event)
             return self.perform_click(event)
         elif event.attrib["scrollable"] == 'true':

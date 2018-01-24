@@ -79,13 +79,18 @@ class Environment(object):
             key = get_state_hash_action_key(self.current_state, self.current_action)
             if self.next_state.activity == 'com.android.systemui.recents.RecentsActivity' or self.next_state.activity == 'com.android.launcher2.Launcher' or self.next_state.activity == "com.jiubang.golauncher.GOLauncher" or self.next_state.activity == 'com.android.launcher3.Launcher':
                 value = 0
-            elif key in self.q_value:
+            # elif key in self.q_value:
                 # print(self.q_value[key])
                 # print(self.reward[self.get_reward_key(self.current_state, self.next_state)])
                 # print(max(list(self.next_state.q_value.values())))
-                value = self.q_value[key] + self.alpha*(self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma*max(list(self.next_state.q_value.values())) - self.q_value[key])
+                # value = self.q_value[key] + self.alpha*(self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma*max(list(self.next_state.q_value.values())) - self.q_value[key])
+                # value = self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma * max(list(self.next_state.q_value.values()))
+            elif len(self.next_state.q_value.values()) > 0:
+                # value = DEFAULT_Q + self.alpha * (self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma * max(list(self.next_state.q_value.values())) - DEFAULT_Q)
+                value = self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma * max(list(self.next_state.q_value.values()))
             else:
-                value = DEFAULT_Q + self.alpha * (self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma * max(list(self.next_state.q_value.values())) - DEFAULT_Q)
+                value = self.reward[self.get_reward_key(self.current_state, self.next_state)]
+
             self.q_value[key] = value
             self.current_state.update_q(self.current_action, value)
             print("Update q value for {} - > {} = {}".format(self.current_state.activity, self.next_state.activity, value))
