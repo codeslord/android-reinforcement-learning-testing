@@ -18,11 +18,12 @@ from utils import *
 from qlearning.environment import Environment
 import operator
 import random
+import datetime
 
 logger = logging.getLogger(__name__)
-# current_package = "org.liberty.android.fantastischmemo"
+current_package = "org.liberty.android.fantastischmemo"
 # current_package = "com.irahul.worldclock"
-current_package = "net.fercanet.LNM"
+# current_package = "net.fercanet.LNM"
 output_path = "../output/{}/".format(current_package)
 input_path = "../input/{}/".format(current_package)
 
@@ -34,12 +35,12 @@ recorda_input_path = "{}recorda/{}".format(input_path, 'reany.json')
 kenlm_input_path = "{}kenlm/{}".format(input_path, 'h_PKDexActzzzzz.arpa')
 alpha = 1.
 gamma = 0.9
-epsilon =0.8
+epsilon_greedy = 0.8
 
 def is_out_of_app(activity):
     """Check is out of app."""
     print 'activity: ', activity
-    if (activity == 'com.android.browser') or (activity == 'com.android.browser.BrowserActivity') or ('com.google.android' in activity) or ('com.android' in activity):
+    if activity == 'com.android.systemui.recents.RecentsActivity' or (activity == 'com.android.browser') or (activity == 'com.android.browser.BrowserActivity') or ('com.google.android' in activity) or ('com.android' in activity):
 
         append_string_to_file("LEAVE APP!")
         return True
@@ -141,7 +142,10 @@ def random_strategy(device, step=5, episode=10):
     print(env.q_value)
 
 
-def epsilon_greedy_strategy(device, epsilon, step=5, episode=10):
+def epsilon_greedy_strategy(device, epsilon, step=5, episode=1000):
+
+    print(datetime.datetime.now().isoformat())
+
     env = Environment(alpha, gamma)
     observer = GuiObserver(device)
     executor = Executor(device)
@@ -159,32 +163,31 @@ def epsilon_greedy_strategy(device, epsilon, step=5, episode=10):
             elif is_out_of_app(activity):
                 executor.perform_back()
                 continue
-
-            env.set_current_state(activity, clickable_list)
-
-            if len(env.get_available_action()):
-                r = random.uniform(0, 1)
-                if r > epsilon:
-                    env.current_action = random.choice(env.get_available_action().keys())
-                else:
-                    max_q_key = max(env.q_value.iteritems(), key=operator.itemgetter(1))[0]
-                    hash_action = max_q_key.split("||")[1]
-                    env.current_action = hash_action
-
-            if not env.current_action:
-                x = randint(0, 540)
-                y = randint(0, 540)
-                executor.perform_random_click(x, y)
             else:
-                # print("Perform {}".format(env.current_action.attrib))
-                executor.perform_action(env.actions[env.current_action][1])
+                env.set_current_state(activity, clickable_list)
 
-            time.sleep(0.5)
-            env.set_next_state(observer.get_current_activity(current_package),
-                               observer.get_all_actionable_events(hierarchy_output_path))
-            print("{} ------> {}".format(env.current_state.activity, env.next_state.activity))
-            env.add_reward(env.current_state, env.next_state)
-            env.update_q()
+                if len(env.get_available_action()):
+                    r = random.uniform(0.0, 1.0)
+                    if r > epsilon:
+                        env.current_action = random.choice(env.get_available_action().keys())
+                    else:
+                        max_q_key = max(env.q_value.iteritems(), key=operator.itemgetter(1))[0]
+                        hash_action = max_q_key.split("||")[1]
+                        env.current_action = hash_action
+
+                if not env.current_action:
+                    x = randint(0, 540)
+                    y = randint(0, 540)
+                    executor.perform_random_click(x, y)
+                else:
+                    # print("Perform {}".format(env.current_action.attrib))
+                    executor.perform_action(env.actions[env.current_action][1])
+
+                env.set_next_state(observer.get_current_activity(current_package),
+                                   observer.get_all_actionable_events(hierarchy_output_path))
+                # print("{} ------> {}".format(env.current_state.activity, env.next_state.activity))
+                env.add_reward(env.current_state, env.next_state)
+                env.update_q()
         """ 
         End of and episode, start from a random state from the list of states that have been explored
         """
@@ -195,6 +198,9 @@ def epsilon_greedy_strategy(device, epsilon, step=5, episode=10):
         print s
     print("QQQQQQQQQQQQQQQQQQQQQQQQQ")
     print(env.q_value.values())
+
+    print(datetime.datetime.now().isoformat())
+
 
 
 def random_test_with_model(device, times=1):
@@ -314,7 +320,7 @@ if __name__ == "__main__":
     if not os.path.isdir(input_path):
         os.mkdir(input_path)
     # random_strategy(d)
-    epsilon_greedy_strategy(d, epsilon)
+    epsilon_greedy_strategy(d, epsilon_greedy)
     # random_test(d, executor, 10)
     # random_test_with_model(d, times=50)
     logger.info('----DONE----')

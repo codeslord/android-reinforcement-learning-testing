@@ -39,22 +39,22 @@ class Executor:
         x1, y1 = self.get_random_point_from_bound(bound_str)
         x2, y2 = self.get_random_point_from_bound(bound_str)
         self.device.drag(x1, y1, x2, y2, steps=30)
-        print 'scroll:', event.attrib
-        print 'from:', x1, y1, 'to:', x2, y2
+        # print 'scroll:', event.attrib
+        # print 'from:', x1, y1, 'to:', x2, y2
         return True
 
     def perform_click(self, event):
         """Perform click at x,y from eventbound."""
         x, y = self.get_center_from_bound(event.attrib['bounds'])
         self.device.click(x, y)
-        print 'click:', event.attrib
-        print 'at', x, y
+        # print 'click:', event.attrib
+        # print 'at', x, y
         return True
 
     def perform_random_click(self, x, y):
         """Perform random click at x,y."""
-        print 'randomclick:'
-        print 'at', x, y
+        # print 'randomclick:'
+        # print 'at', x, y
         self.device.click(x, y)
         return True
 
@@ -104,8 +104,8 @@ class Executor:
         """Perform click at x,y from eventbound."""
         x, y = self.get_center_from_bound(event.attrib['bounds'])
         self.device.long_click(x, y)
-        print 'longclick:', event.attrib
-        print 'at', x, y
+        # print 'longclick:', event.attrib
+        # print 'at', x, y
         return True
 
     # TODO: support multiple action.
@@ -113,7 +113,7 @@ class Executor:
         """Perform an action base on event type."""
         if h_event["eventType"] == 'TYPE_VIEW_CLICKED':
             if 'Text' in event.attrib["class"]:
-                print '------contain text-------'
+                # print '------contain text-------'
                 return self.perform_click_and_text(event)
             return self.perform_click(event)
         elif h_event["eventType"] == 'TYPE_VIEW_SCROLLED':

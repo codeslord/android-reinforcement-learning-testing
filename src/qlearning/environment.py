@@ -3,7 +3,7 @@ import random
 from state import *
 from simplifier import Simplifier
 
-DEFAULT_REWARD = 0.1
+DEFAULT_REWARD = 0
 
 
 class Environment(object):
@@ -24,7 +24,7 @@ class Environment(object):
         for s in self.states.values():
             if s.equal(state):
                 known_state = s
-                print("Found existing state !!!!!")
+                # print("Found existing state {} - {} actions !!!!!".format(s.activity, len(s.actions)))
         return known_state
 
     def add_state(self, state):
@@ -33,8 +33,8 @@ class Environment(object):
             self.states[state.id] = state
             self.actions.update(hash_all_gui_event(state.actions))
             self.q_value.update(state.q_value)
-            print("Add state")
-            print(state.activity)
+            # print("Add state")
+            # print(state.activity)
 
     def set_current_state(self, activity, clickable_list):
         s = State(activity, clickable_list)
@@ -77,16 +77,18 @@ class Environment(object):
     def update_q(self):
         if self.current_state and self.next_state:
             key = get_state_hash_action_key(self.current_state, self.current_action)
-            if key in self.q_value:
-                print(self.q_value[key])
-                print(self.reward[self.get_reward_key(self.current_state, self.next_state)])
-                print(max(list(self.next_state.q_value.values())))
-                value = self.q_value[key] + self.alpha*(self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma*max(list(self.next_state.q_value.values())))
+            if self.next_state.activity == 'com.android.systemui.recents.RecentsActivity' or self.next_state.activity == 'com.android.launcher2.Launcher' or self.next_state.activity == "com.jiubang.golauncher.GOLauncher" or self.next_state.activity == 'com.android.launcher3.Launcher':
+                value = 0
+            elif key in self.q_value:
+                # print(self.q_value[key])
+                # print(self.reward[self.get_reward_key(self.current_state, self.next_state)])
+                # print(max(list(self.next_state.q_value.values())))
+                value = self.q_value[key] + self.alpha*(self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma*max(list(self.next_state.q_value.values())) - self.q_value[key])
             else:
-                value = DEFAULT_Q + self.alpha * (self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma * max(list(self.next_state.q_value.values())))
+                value = DEFAULT_Q + self.alpha * (self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma * max(list(self.next_state.q_value.values())) - DEFAULT_Q)
             self.q_value[key] = value
             self.current_state.update_q(self.current_action, value)
-            print("Updating q value for {} = {}".format(key, value))
+            print("Update q value for {} - > {} = {}".format(self.current_state.activity, self.next_state.activity, value))
 
     def end_episode(self):
         self.current_state = None
