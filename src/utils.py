@@ -27,6 +27,6 @@ def write_string_to_file(text, filename="text"):
 
 def append_string_to_file(text, filename="../execlog"):
     """Append string to a file."""
-    print 'append string to file'
+    # print 'append string to file'
     with io.FileIO(filename, "a") as file:
         file.write(text+'\n')

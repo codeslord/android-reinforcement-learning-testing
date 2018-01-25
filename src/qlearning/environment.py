@@ -121,7 +121,7 @@ class Environment(object):
                 value = self.reward[reward_key] + self.gamma * max(list(self.next_state.q_value.values()))
             else:
                 value = self.reward[reward_key]
-            print("Update q value for {} - > {}: {} -> {}. Reward {}".format(self.current_state.activity, self.next_state.activity, self.q_value[key] if key in self.q_value else 'None', value, self.reward[reward_key]))
+            print("{} - > {}: {} -> {}. Reward {}".format(self.current_state.activity, self.next_state.activity, self.q_value[key] if key in self.q_value else 'None', value, self.reward[reward_key]))
             self.q_value[key] = value
             self.states[str(self.current_state.id)].update_q(self.current_action, value)
             # print("AFTER MODIFIED CURRENT Q VALUE")

@@ -22,25 +22,23 @@ from qlearning.modelbuilder import ModelBuilder
 from utils import *
 
 logger = logging.getLogger(__name__)
-# current_package = "org.liberty.android.fantastischmemo"
+current_package = "org.liberty.android.fantastischmemo"
 # current_package = "com.irahul.worldclock"
-current_package = "net.fercanet.LNM"
+# current_package = "net.fercanet.LNM"
 output_path = "../output/{}/".format(current_package)
 input_path = "../input/{}/".format(current_package)
 
 hierarchy_output_path = "{}{}".format(output_path, 'hierarchy.xml')
 
 recorda_output_path = "{}recorda/".format(output_path)
-recorda_input_path = "{}recorda/{}".format(input_path, 'music_recorda.json')
+recorda_input_path = "{}recorda/{}".format(input_path, 'anymemo_recorda.json')
 
-kenlm_input_path = "{}kenlm/{}".format(input_path, 'h_PKDexActzzzzz.arpa')
 alpha = 1.
 gamma = 0.9
 epsilon_greedy = 0.8
 
 def is_out_of_app(activity):
     """Check is out of app."""
-    print 'activity: ', activity
     if ('com.google.android' in activity) or ('com.android' in activity) or 'mCurrentFocus=null' in activity:
 
         append_string_to_file("LEAVE APP!")
@@ -70,6 +68,7 @@ def back_to_app():
 def jump_to_activity(activity):
     output = check_output(['adb', 'shell', 'am', 'start', '-n', '{}/.{}'.format(current_package, activity)])
     print (output)
+    return output
 
 
 def random_test(device, executor, observer, times=1):
@@ -144,16 +143,16 @@ def random_strategy(device, step=5, episode=10):
     print(env.q_value)
 
 
-def epsilon_greedy_strategy(device, epsilon, step=70, episode=30, recorda=False):
+def epsilon_greedy_strategy(device, epsilon, step=50, episode=40, recorda=False):
 
     print(datetime.datetime.now().isoformat())
     if recorda:
         dp = DataProcessor(recorda_output_path)
-        print(recorda_output_path)
+        # print(recorda_output_path)
         with open(recorda_input_path, 'r') as data_file:
             events = json.load(data_file)
         dp.process_all_events(events)
-        env = Environment(alpha, gamma, recorda_path=recorda_output_path )
+        env = Environment(alpha, gamma, recorda_path=recorda_output_path)
     else:
         env = Environment(alpha, gamma)
     observer = GuiObserver(device)
@@ -182,7 +181,7 @@ def epsilon_greedy_strategy(device, epsilon, step=70, episode=30, recorda=False)
                         max_q_key = max(env.current_state.q_value.iteritems(), key=operator.itemgetter(1))[0]
                         hash_action = max_q_key.split("||")[1]
                         env.current_action = hash_action
-                print("current action {}".format(env.current_action))
+                # print("current action {}".format(env.current_action))
                 if not env.current_action or env.current_action == 'None':
                     x = randint(0, 540)
                     y = randint(0, 540)
@@ -200,11 +199,14 @@ def epsilon_greedy_strategy(device, epsilon, step=70, episode=30, recorda=False)
         """ 
         End of and episode, start from a random state from the list of states that have been explored
         """
-        random_state = env.get_random_state()
-        jump_to_activity(random_state.activity)
+        for i in range(len(env.states)):
+            random_state = env.get_random_state()
+            output = jump_to_activity(random_state.activity)
+            if 'Error' not in output:
+                break
     print("#############STATE###########")
     for s in env.states.values():
-        print s
+        print(s)
     print("QQQQQQQQQQQQQQQQQQQQQQQQQ")
     print(env.q_value.values())
 
@@ -243,7 +245,7 @@ def random_test_with_model(device, times=1):
         clickable_list = observer.get_all_actionable_events(hierarchy_output_path)
 
         current_activity = observer.get_current_activity(current_package)
-        print ('current_activity:', current_activity)
+        # print ('current_activity:', current_activity)
 
         if is_launcher(current_activity):
             back_to_app()
