@@ -24,6 +24,8 @@ class State(object):
         self.q_value[key] = value
 
     def equal(self, state):
+        if len(self.hash_actions) != len(state.hash_actions):
+            return False
         if state.activity != self.activity:
             return False
         paired = zip(map(operator.itemgetter(0), self.hash_actions.values()), map(operator.itemgetter(0), state.hash_actions.values()))

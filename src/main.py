@@ -22,16 +22,16 @@ from qlearning.modelbuilder import ModelBuilder
 from utils import *
 
 logger = logging.getLogger(__name__)
-current_package = "org.liberty.android.fantastischmemo"
+# current_package = "org.liberty.android.fantastischmemo"
 # current_package = "com.irahul.worldclock"
-# current_package = "net.fercanet.LNM"
+current_package = "net.fercanet.LNM"
 output_path = "../output/{}/".format(current_package)
 input_path = "../input/{}/".format(current_package)
 
 hierarchy_output_path = "{}{}".format(output_path, 'hierarchy.xml')
 
 recorda_output_path = "{}recorda/".format(output_path)
-recorda_input_path = "{}recorda/{}".format(input_path, 'reany.json')
+recorda_input_path = "{}recorda/{}".format(input_path, 'music_recorda.json')
 
 kenlm_input_path = "{}kenlm/{}".format(input_path, 'h_PKDexActzzzzz.arpa')
 alpha = 1.
@@ -41,7 +41,7 @@ epsilon_greedy = 0.8
 def is_out_of_app(activity):
     """Check is out of app."""
     print 'activity: ', activity
-    if ('com.google.android' in activity) or ('com.android' in activity):
+    if ('com.google.android' in activity) or ('com.android' in activity) or 'mCurrentFocus=null' in activity:
 
         append_string_to_file("LEAVE APP!")
         return True
@@ -144,7 +144,7 @@ def random_strategy(device, step=5, episode=10):
     print(env.q_value)
 
 
-def epsilon_greedy_strategy(device, epsilon, step=10, episode=10, recorda=False):
+def epsilon_greedy_strategy(device, epsilon, step=70, episode=30, recorda=False):
 
     print(datetime.datetime.now().isoformat())
     if recorda:
@@ -161,7 +161,6 @@ def epsilon_greedy_strategy(device, epsilon, step=10, episode=10, recorda=False)
     for j in tqdm(range(episode)):
         print("------------Episode {}---------------".format(j))
         for i in range(step):
-            time.sleep(0.5)
             observer.dump_gui(hierarchy_output_path)
             activity = observer.get_current_activity(current_package)
             clickable_list = observer.get_all_actionable_events(hierarchy_output_path)
@@ -175,7 +174,7 @@ def epsilon_greedy_strategy(device, epsilon, step=10, episode=10, recorda=False)
             else:
                 env.set_current_state(activity, clickable_list)
 
-                if len(env.get_available_action()):
+                if len(env.get_available_action()) > 0:
                     r = random.uniform(0.0, 1.0)
                     if r > epsilon:
                         env.current_action = random.choice(env.get_available_action().keys())
@@ -183,15 +182,16 @@ def epsilon_greedy_strategy(device, epsilon, step=10, episode=10, recorda=False)
                         max_q_key = max(env.current_state.q_value.iteritems(), key=operator.itemgetter(1))[0]
                         hash_action = max_q_key.split("||")[1]
                         env.current_action = hash_action
-
-                if not env.current_action:
+                print("current action {}".format(env.current_action))
+                if not env.current_action or env.current_action == 'None':
                     x = randint(0, 540)
                     y = randint(0, 540)
                     executor.perform_random_click(x, y)
                 else:
                     # print("Perform {}".format(env.current_action.attrib))
                     executor.perform_action(env.actions[env.current_action][1])
-
+                time.sleep(0.5)
+                observer.dump_gui(hierarchy_output_path)
                 env.set_next_state(observer.get_current_activity(current_package),
                                    observer.get_all_actionable_events(hierarchy_output_path))
                 # print("{} ------> {}".format(env.current_state.activity, env.next_state.activity))

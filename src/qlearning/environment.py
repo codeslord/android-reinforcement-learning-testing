@@ -12,10 +12,10 @@ RECORDA_WEIGHT = 10
 
 class Environment(object):
 
-    def __init__(self, alpha= 1.0, gamma=0.9, recorda_path=None):
+    def __init__(self, alpha=1.0, gamma=0.9, recorda_path=None):
         self.states = {}  # state id : state
         self.actions = {}  # hash_action : [sim_action, action]
-        self.reward = {}  # old_state|new_state : value
+        self.reward = {}  # old_state_id|new_state_id : value
         self.q_value = {}  # state| hash_action : value
         self.current_state = None
         self.next_state = None
@@ -25,8 +25,12 @@ class Environment(object):
         self.recorda_actions = {}
         if recorda_path:
             for filename in os.listdir(recorda_path):
-                package = recorda_path.split('/')[-2]
-                activity_name = filename.split(package)[0][:-4]
+                package = recorda_path.split('/')[-3]
+                if filename.startswith(package):
+                    activity_name = filename[len(package) + 1: -5]
+                else:
+                    activity_name = filename[0:-5]
+                self.add_state(State(activity_name, []))
                 with open(os.path.join(recorda_path, filename)) as file:
                     recorda_raw_actions = json.load(file)
                     mb = ModelBuilder(recorda_raw_actions)
@@ -46,7 +50,7 @@ class Environment(object):
     def add_state(self, state):
         if not self.is_known_state(state):
             """ How to have an unique id for a view ?"""
-            self.states[state.id] = state
+            self.states[str(state.id)] = state
             self.actions.update(state.hash_actions)
             for key in state.q_value:
                 if key in self.q_value:
@@ -82,23 +86,24 @@ class Environment(object):
         return "{}:{}".format(old_state.id, new_state.id)
 
     def add_reward(self, old_state, new_state):
-        paired = zip(map(operator.itemgetter(0), old_state.hash_actions.values()),
-                     map(operator.itemgetter(0), new_state.hash_actions.values()))
-        shared_items = [(x, y) for (x, y) in paired if x == y]
-        similarity_counter = len(shared_items)
-        # for component in new_state.actions:
-        #     if component in old_state.actions:
-        #         similarity_counter += 1
-        if len(new_state.actions):
-            reward = (len(new_state.actions) - similarity_counter)/float(len(new_state.actions))
-        else:
+        key = self.get_reward_key(old_state, new_state)
+        if key not in self.reward:
+            # if old_state.id == new_state.id:
+            #     reward = - 0.01
             reward = DEFAULT_REWARD
-        self.reward[self.get_reward_key(old_state, new_state)] = reward
+            if len(new_state.actions):
+                paired = zip(map(operator.itemgetter(0), old_state.hash_actions.values()),
+                             map(operator.itemgetter(0), new_state.hash_actions.values()))
+                shared_items = [(x, y) for (x, y) in paired if x == y]
+                similarity_counter = len(shared_items)
+                reward = (len(new_state.hash_actions) - similarity_counter)/float(len(new_state.actions))
+            self.reward[key] = reward
 
     def update_q(self):
         if self.current_state and self.next_state:
             key = get_state_hash_action_key(self.current_state, self.current_action)
-            if self.next_state.activity == 'com.android.systemui.recents.RecentsActivity' or self.next_state.activity == 'com.android.launcher2.Launcher' or self.next_state.activity == "com.jiubang.golauncher.GOLauncher" or self.next_state.activity == 'com.android.launcher3.Launcher':
+            reward_key = self.get_reward_key(self.current_state, self.next_state)
+            if self.next_state.activity == 'com.android.systemui.recents.RecentsActivity' or self.next_state.activity == 'com.android.launcher2.Launcher' or self.next_state.activity == "com.jiubang.golauncher.GOLauncher" or self.next_state.activity == 'com.android.launcher3.Launcher' or 'mCurrentFocus=null' in self.next_state.activity:
                 value = 0
             # elif key in self.q_value:
                 # print(self.q_value[key])
@@ -107,14 +112,23 @@ class Environment(object):
                 # value = self.q_value[key] + self.alpha*(self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma*max(list(self.next_state.q_value.values())) - self.q_value[key])
                 # value = self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma * max(list(self.next_state.q_value.values()))
             elif len(self.next_state.q_value.values()) > 0:
+                # print("NEXT Q VALUE")
+                # print(self.next_state.q_value.values())
+                # print("CURRENT Q VALUE")
+                # print(self.current_state.q_value.values())
+                # print("max {}".format(max(list(self.next_state.q_value.values()))))
                 # value = DEFAULT_Q + self.alpha * (self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma * max(list(self.next_state.q_value.values())) - DEFAULT_Q)
-                value = self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma * max(list(self.next_state.q_value.values()))
+                value = self.reward[reward_key] + self.gamma * max(list(self.next_state.q_value.values()))
             else:
-                value = self.reward[self.get_reward_key(self.current_state, self.next_state)]
-
+                value = self.reward[reward_key]
+            print("Update q value for {} - > {}: {} -> {}. Reward {}".format(self.current_state.activity, self.next_state.activity, self.q_value[key] if key in self.q_value else 'None', value, self.reward[reward_key]))
             self.q_value[key] = value
-            self.current_state.update_q(self.current_action, value)
-            print("Update q value for {} - > {} = {}".format(self.current_state.activity, self.next_state.activity, value))
+            self.states[str(self.current_state.id)].update_q(self.current_action, value)
+            # print("AFTER MODIFIED CURRENT Q VALUE")
+            # print(self.current_state.q_value.values())
+            # print("AFTER MODIFIED ENV Q VALUE")
+            # print(self.states[str(self.current_state.id)].q_value.values())
+
 
     def end_episode(self):
         self.current_state = None

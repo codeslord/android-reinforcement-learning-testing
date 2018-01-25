@@ -39,16 +39,16 @@ class Executor:
         x1, y1 = self.get_random_point_from_bound(bound_str)
         x2, y2 = self.get_random_point_from_bound(bound_str)
         self.device.drag(x1, y1, x2, y2, steps=30)
-        # print 'scroll:', event.attrib
-        # print 'from:', x1, y1, 'to:', x2, y2
+        print 'scroll:', event.attrib['resource-id']
+        print 'from:', x1, y1, 'to:', x2, y2
         return True
 
     def perform_click(self, event):
         """Perform click at x,y from eventbound."""
         x, y = self.get_center_from_bound(event.attrib['bounds'])
         self.device.click(x, y)
-        # print 'click:', event.attrib
-        # print 'at', x, y
+        print 'click:', event.attrib['text']
+        print 'at', x, y
         return True
 
     def perform_random_click(self, x, y):
@@ -99,13 +99,14 @@ class Executor:
         else:
             subprocess.call(['adb', 'shell', 'input', 'keyboard', 'text',
                             '"'+text+'"'])
+            subprocess.call(['adb', 'shell', 'input', 'keyevent', '111'])
 
     def perform_longclick(self, event):
         """Perform click at x,y from eventbound."""
         x, y = self.get_center_from_bound(event.attrib['bounds'])
         self.device.long_click(x, y)
-        # print 'longclick:', event.attrib
-        # print 'at', x, y
+        print 'longclick:', event.attrib['text']
+        print 'at', x, y
         return True
 
     # TODO: support multiple action.
