@@ -33,6 +33,7 @@ class Environment(object):
                     for hash, value in mb.h_event_freq.items():
                         key = "{}||{}".format(activity_name, hash).encode('utf-8').strip()
                         self.q_value[key] = RECORDA_WEIGHT * value
+        print(self.q_value)
 
     def is_known_state(self, state):
         known_state = None

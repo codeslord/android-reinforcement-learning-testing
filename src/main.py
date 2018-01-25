@@ -144,7 +144,7 @@ def random_strategy(device, step=5, episode=10):
     print(env.q_value)
 
 
-def epsilon_greedy_strategy(device, epsilon, step=5, episode=10, recorda=False):
+def epsilon_greedy_strategy(device, epsilon, step=10, episode=10, recorda=False):
 
     print(datetime.datetime.now().isoformat())
     if recorda:

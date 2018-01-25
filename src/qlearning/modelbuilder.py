@@ -61,7 +61,6 @@ class ModelBuilder:
                     hash_events_count[h_event] += 1
                 else:
                     hash_events_count[h_event] = 1
-        print (hash_events_count)
         hash_freq = {k: v/float(len(raw_events)) for k, v in hash_events_count.items()}
         return hash_freq
 
