@@ -21,12 +21,9 @@ class DataProcessor:
         for e in events:
             if e["eventType"] == 'TYPE_WINDOW_STATE_CHANGED':
                 currentActivity = e["className"]
-
                 if currentActivity not in event_dict:
                     event_dict[currentActivity] = []
-
             event_dict[currentActivity] += [e]
-
         return event_dict
 
     def check_scroll_type(self, event):

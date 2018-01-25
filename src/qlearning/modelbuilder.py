@@ -10,8 +10,9 @@ class ModelBuilder:
 
     def __init__(self, raw_events):
         """Initialize the class."""
-        self.raw_events = raw_events  #event from Recorda
-        self.h_events, self.h_events_str = self.create_hash_events(raw_events)
+        self.raw_events = raw_events  # event from Recorda
+        # self.h_events, self.h_events_str = self.create_hash_events(raw_events)
+        self.h_event_freq = self.create_hash_events_with_frequency(raw_events)
 
     def trim_newline(self, text):
         """Remove empty newline or trailing space."""
@@ -40,6 +41,29 @@ class ModelBuilder:
         hash_events_str = self.trim_newline(hash_events_str)
         # hash_events_str = ' '.join(hash_events_list)
         return [hash_events, hash_events_str]
+
+    def create_hash_events_with_frequency(self, raw_events):
+        """Hash all the events in dict and seq of hash events.
+
+        format of dict: {hashValue1: simplified event1, hashValue2: simplified event2}, ...
+        """
+        hash_events = {}
+        hash_events_count = {}
+        simplifier = Simplifier()
+        for e in raw_events:
+            if e["eventType"] == 'TYPE_WINDOW_STATE_CHANGED':
+                h_event = simplifier.hash_event(e)
+            else:
+                sim = simplifier.simplification_event(e)
+                h_event = sim[0]
+                hash_events[h_event] = sim[1]
+                if h_event in hash_events_count:
+                    hash_events_count[h_event] += 1
+                else:
+                    hash_events_count[h_event] = 1
+        print (hash_events_count)
+        hash_freq = {k: v/float(len(raw_events)) for k, v in hash_events_count.items()}
+        return hash_freq
 
     def save_hash_events(self, eventstr, filename):
         """Hash all event to a file."""

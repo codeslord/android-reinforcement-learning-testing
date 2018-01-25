@@ -2,15 +2,19 @@
 import random
 from state import *
 from simplifier import Simplifier
+import os
+import json
+from modelbuilder import ModelBuilder
+
 
 DEFAULT_REWARD = 0
-
+RECORDA_WEIGHT = 10
 
 class Environment(object):
 
-    def __init__(self, alpha= 1.0, gamma=0.9):
+    def __init__(self, alpha= 1.0, gamma=0.9, recorda_path=None):
         self.states = {}  # state id : state
-        self.actions = {}  # hash_action : action
+        self.actions = {}  # hash_action : [sim_action, action]
         self.reward = {}  # old_state|new_state : value
         self.q_value = {}  # state| hash_action : value
         self.current_state = None
@@ -18,6 +22,17 @@ class Environment(object):
         self.current_action = None
         self.alpha = alpha
         self.gamma = gamma
+        self.recorda_actions = {}
+        if recorda_path:
+            for filename in os.listdir(recorda_path):
+                package = recorda_path.split('/')[-2]
+                activity_name = filename.split(package)[0][:-4]
+                with open(os.path.join(recorda_path, filename)) as file:
+                    recorda_raw_actions = json.load(file)
+                    mb = ModelBuilder(recorda_raw_actions)
+                    for hash, value in mb.h_event_freq.items():
+                        key = "{}||{}".format(activity_name, hash).encode('utf-8').strip()
+                        self.q_value[key] = RECORDA_WEIGHT * value
 
     def is_known_state(self, state):
         known_state = None
@@ -31,8 +46,13 @@ class Environment(object):
         if not self.is_known_state(state):
             """ How to have an unique id for a view ?"""
             self.states[state.id] = state
-            self.actions.update(hash_all_gui_event(state.actions))
-            self.q_value.update(state.q_value)
+            self.actions.update(state.hash_actions)
+            for key in state.q_value:
+                if key in self.q_value:
+                    state.q_value[key] = self.q_value[key]
+                    # print("##### found q value from recorda #####")
+                else:
+                    self.q_value[key] = state.q_value[key]
             # print("Add state")
             # print(state.activity)
 

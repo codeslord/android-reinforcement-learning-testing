@@ -1,7 +1,7 @@
 from simplifier import Simplifier
 import operator
 import uuid
-DEFAULT_Q = 0.1
+DEFAULT_Q = 0
 
 
 class State(object):
@@ -41,13 +41,13 @@ class State(object):
 
 
 def get_state_hash_action_key(state, hash_action):
-    return "{}||{}".format(state.id, hash_action).encode('utf-8').strip()
+    return "{}||{}".format(state.activity, hash_action).encode('utf-8').strip()
 
 
 def get_state_action_key(state, component):
     simplifier = Simplifier()
     hash_action = simplifier.simplification_gui_event(component)[0]
-    return "{}||{}".format(state.id, hash_action).encode('utf-8').strip()
+    return "{}||{}".format(state.activity, hash_action).encode('utf-8').strip()
 
 
 def hash_all_gui_event(actionable_events):
@@ -59,3 +59,13 @@ def hash_all_gui_event(actionable_events):
         h_event = sim[0]
         hash_events[h_event] = [sim[1], sim[2]]
     return hash_events
+
+def compare_action(self, gui_action, recorda_action):
+    # gui_action from hierachy dump
+    # recorda action from recorda output json file
+    s = Simplifier()
+    gui_action_sim = s.simplification_gui_event(gui_action).values()[0][0]
+    return (gui_action_sim['eventType'] == recorda_action['eventType'] and gui_action_sim['eventText'] == recorda_action[
+        'eventText'] and gui_action_sim['resource-id'] == 'noneId') or (
+        gui_action_sim['resource-id'] != 'noneId' and 'resource-id' in recorda_action and gui_action_sim['resource-id'] == recorda_action['resource-id'])
+

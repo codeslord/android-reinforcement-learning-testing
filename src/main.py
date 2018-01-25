@@ -1,24 +1,25 @@
-import sys
-import os
 import argparse
+import datetime
 import logging
-from tqdm import tqdm  # show progress bar
-import json
+import operator
+import os
+import random
+import sys
 import time
 from random import randint
-from uiautomator import Device
+from subprocess import check_output
 from xml.etree import cElementTree as ET
+
+from tqdm import tqdm  # show progress bar
+from uiautomator import Device
+
 from dataprocessor import DataProcessor
 from executor import Executor
 from observer.guiobserver import GuiObserver
-from modelbuilder import ModelBuilder
-from selector import Selector
-from subprocess import check_output
-from utils import *
 from qlearning.environment import Environment
-import operator
-import random
-import datetime
+from selector import Selector
+from qlearning.modelbuilder import ModelBuilder
+from utils import *
 
 logger = logging.getLogger(__name__)
 current_package = "org.liberty.android.fantastischmemo"
@@ -143,11 +144,18 @@ def random_strategy(device, step=5, episode=10):
     print(env.q_value)
 
 
-def epsilon_greedy_strategy(device, epsilon, step=5, episode=1000):
+def epsilon_greedy_strategy(device, epsilon, step=5, episode=10, recorda=False):
 
     print(datetime.datetime.now().isoformat())
-
-    env = Environment(alpha, gamma)
+    if recorda:
+        dp = DataProcessor(recorda_output_path)
+        print(recorda_output_path)
+        with open(recorda_input_path, 'r') as data_file:
+            events = json.load(data_file)
+        dp.process_all_events(events)
+        env = Environment(alpha, gamma, recorda_path=recorda_output_path )
+    else:
+        env = Environment(alpha, gamma)
     observer = GuiObserver(device)
     executor = Executor(device)
     for j in tqdm(range(episode)):
@@ -172,7 +180,7 @@ def epsilon_greedy_strategy(device, epsilon, step=5, episode=1000):
                     if r > epsilon:
                         env.current_action = random.choice(env.get_available_action().keys())
                     else:
-                        max_q_key = max(env.q_value.iteritems(), key=operator.itemgetter(1))[0]
+                        max_q_key = max(env.current_state.q_value.iteritems(), key=operator.itemgetter(1))[0]
                         hash_action = max_q_key.split("||")[1]
                         env.current_action = hash_action
 
@@ -201,7 +209,6 @@ def epsilon_greedy_strategy(device, epsilon, step=5, episode=1000):
     print(env.q_value.values())
 
     print(datetime.datetime.now().isoformat())
-
 
 
 def random_test_with_model(device, times=1):
@@ -249,7 +256,7 @@ def random_test_with_model(device, times=1):
         Step 3: Get activity logs from Recorda or previous model builder and build a new model upon it
         """
 
-        if os.path.isfile(recorda_input_path + current_package + '.' + current_activity + '.json'):
+        if os.path.isfile(recorda_output_path + current_package + '.' + current_activity + '.json'):
             with open(recorda_input_path + current_package + '.' + current_activity + '.json') as df:
                 main_events = json.load(df)
             mb = ModelBuilder(main_events)
@@ -321,7 +328,7 @@ if __name__ == "__main__":
     if not os.path.isdir(input_path):
         os.mkdir(input_path)
     # random_strategy(d)
-    epsilon_greedy_strategy(d, epsilon_greedy)
+    epsilon_greedy_strategy(d, epsilon_greedy, recorda=True)
     # random_test(d, executor, 10)
     # random_test_with_model(d, times=50)
     logger.info('----DONE----')
