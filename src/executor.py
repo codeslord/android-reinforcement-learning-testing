@@ -53,8 +53,8 @@ class Executor:
 
     def perform_random_click(self, x, y):
         """Perform random click at x,y."""
-        # print 'randomclick:'
-        # print 'at', x, y
+        print 'randomclick:'
+        print 'at', x, y
         self.device.click(x, y)
         return True
 

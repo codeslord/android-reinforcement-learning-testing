@@ -5,7 +5,8 @@ from simplifier import Simplifier
 import os
 import json
 from modelbuilder import ModelBuilder
-
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
 
 DEFAULT_REWARD = 0
 RECORDA_WEIGHT = 10
@@ -30,53 +31,52 @@ class Environment(object):
                     activity_name = filename[len(package) + 1: -5]
                 else:
                     activity_name = filename[0:-5]
-                self.add_state(State(activity_name, []))
+                self.add_state(activity_name, [])
                 with open(os.path.join(recorda_path, filename)) as file:
                     recorda_raw_actions = json.load(file)
                     mb = ModelBuilder(recorda_raw_actions)
                     for hash, value in mb.h_event_freq.items():
                         key = "{}||{}".format(activity_name, hash).encode('utf-8').strip()
                         self.q_value[key] = RECORDA_WEIGHT * value
-        print(self.q_value)
+        pp.pprint(self.q_value)
+        pp.pprint([str(state) for state in self.states.values()])
 
-    def is_known_state(self, state):
+    def is_known_state(self, activity, clickable_actions):
         known_state = None
+        hash_action = hash_all_gui_event(clickable_actions)
         for s in self.states.values():
-            if s.equal(state):
+            if s.activity == activity and equal_hash_actions(hash_action, s.hash_actions):
                 known_state = s
-                # print("Found existing state {} - {} actions !!!!!".format(s.activity, len(s.actions)))
+                print("Found existing state {} - {} actions !!!!!".format(s.activity, len(s.hash_actions)))
         return known_state
 
-    def add_state(self, state):
-        if not self.is_known_state(state):
-            """ How to have an unique id for a view ?"""
-            self.states[str(state.id)] = state
-            self.actions.update(state.hash_actions)
-            for key in state.q_value:
-                if key in self.q_value:
-                    state.q_value[key] = self.q_value[key]
-                    # print("##### found q value from recorda #####")
-                else:
-                    self.q_value[key] = state.q_value[key]
-            # print("Add state")
-            # print(state.activity)
+    """ !!!!! Always call is_known_state before this"""
+    def add_state(self, activity, clickable_components):
+        state = State(activity, clickable_components)
+        self.states[str(state.id)] = state
+        self.actions.update(state.hash_actions)
+        for key in state.q_value:
+            if key in self.q_value:
+                state.q_value[key] = self.q_value[key]
+                # print("##### found q value from recorda #####")
+            else:
+                self.q_value[key] = state.q_value[key]
+        return state
 
-    def set_current_state(self, activity, clickable_list):
-        s = State(activity, clickable_list)
-        known_state = self.is_known_state(s)
+    def set_current_state(self, activity, clickable_components):
+        known_state = self.is_known_state(activity, clickable_components)
         if known_state:
             self.current_state = known_state
         else:
-            self.add_state(s)
+            s = self.add_state(activity, clickable_components)
             self.current_state = s
 
-    def set_next_state(self, activity, clickable_list):
-        s = State(activity, clickable_list)
-        known_state = self.is_known_state(s)
+    def set_next_state(self, activity, clickable_components):
+        known_state = self.is_known_state(activity, clickable_components)
         if known_state:
             self.next_state = known_state
         else:
-            self.add_state(s)
+            s = self.add_state(activity, clickable_components)
             self.next_state = s
 
     def get_available_action(self):
@@ -91,12 +91,12 @@ class Environment(object):
             # if old_state.id == new_state.id:
             #     reward = - 0.01
             reward = DEFAULT_REWARD
-            if len(new_state.actions):
+            if len(new_state.hash_actions):
                 paired = zip(map(operator.itemgetter(0), old_state.hash_actions.values()),
                              map(operator.itemgetter(0), new_state.hash_actions.values()))
                 shared_items = [(x, y) for (x, y) in paired if x == y]
                 similarity_counter = len(shared_items)
-                reward = (len(new_state.hash_actions) - similarity_counter)/float(len(new_state.actions))
+                reward = (len(new_state.hash_actions) - similarity_counter)/float(len(new_state.hash_actions))
             self.reward[key] = reward
 
     def update_q(self):
@@ -131,6 +131,11 @@ class Environment(object):
 
 
     def end_episode(self):
+        self.current_state = None
+        self.current_action = None
+        self.next_state = None
+
+    def reset(self):
         self.current_state = None
         self.current_action = None
         self.next_state = None

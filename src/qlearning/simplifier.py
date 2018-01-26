@@ -28,13 +28,13 @@ class Simplifier:
         sim_event["eventType"] = clickevent["eventType"]
         sim_event["eventText"] = clickevent["eventText"].strip("[]")
 
-        if sim_event["eventText"] != '..':  # has eventText. dont need id.
-            sim_event["resource-id"] = "noneId"
+        # if sim_event["eventText"] != '..':  # has eventText. dont need id.
+        #     sim_event["resource-id"] = "noneId"
+        # else:
+        if "resource-id" in clickevent:
+            sim_event["resource-id"] = clickevent["resource-id"]
         else:
-            if "resource-id" in clickevent:
-                sim_event["resource-id"] = clickevent["resource-id"]
-            else:
-                sim_event["resource-id"] = "noneId"
+            sim_event["resource-id"] = "noneId"
 
         hash_e = "cl_" + self.hash_event(json.dumps(sim_event))
 
@@ -46,13 +46,13 @@ class Simplifier:
         sim_event["eventType"] = clickevent["eventType"]
         sim_event["eventText"] = clickevent["eventText"].strip("[]")
 
-        if sim_event["eventText"] != '..':  # has eventText. dont need id.
-            sim_event["resource-id"] = "noneId"
+        # if sim_event["eventText"] != '..':  # has eventText. dont need id.
+        #     sim_event["resource-id"] = "noneId"
+        # else:
+        if "resource-id" in clickevent:
+            sim_event["resource-id"] = clickevent["resource-id"]
         else:
-            if "resource-id" in clickevent:
-                sim_event["resource-id"] = clickevent["resource-id"]
-            else:
-                sim_event["resource-id"] = "noneId"
+            sim_event["resource-id"] = "noneId"
 
         hash_e = "lcl_" + self.hash_event(json.dumps(sim_event))
 
@@ -71,13 +71,13 @@ class Simplifier:
         #     sim_event["fromIndex"] = scrollevent["fromIndex"]
         #     sim_event["toIndex"] = scrollevent["toIndex"]
 
-        if len(sim_event["eventText"]) != '..':  # has eventText. dont need id.
-            sim_event["resource-id"] = "noneId"
+        # if len(sim_event["eventText"]) != '..':  # has eventText. dont need id.
+        #     sim_event["resource-id"] = "noneId"
+        # else:
+        if "resource-id" in scrollevent:
+            sim_event["resource-id"] = scrollevent["resource-id"]
         else:
-            if "resource-id" in scrollevent:
-                sim_event["resource-id"] = scrollevent["resource-id"]
-            else:
-                sim_event["resource-id"] = "noneId"
+            sim_event["resource-id"] = "noneId"
 
         hash_e = "sc_" + self.hash_event(json.dumps(sim_event))
         return [hash_e, sim_event]
@@ -122,14 +122,14 @@ class Simplifier:
         sim_gui_event["eventType"] = "TYPE_VIEW_CLICKED"
         sim_gui_event["eventText"] = guievent.attrib["text"]
 
-        if len(sim_gui_event["eventText"]) != '..':  # has eventText. dont need id.
-            sim_gui_event["resource-id"] = "noneId"
+        # if len(sim_gui_event["eventText"]) != '..':  # has eventText. dont need id.
+        #     sim_gui_event["resource-id"] = "noneId"
+        # else:
+        if ("resource-id" in guievent.attrib and
+           guievent.attrib["resource-id"] != ''):
+            sim_gui_event["resource-id"] = guievent.attrib["resource-id"]
         else:
-            if ("resource-id" in guievent.attrib and
-               guievent.attrib["resource-id"] != ''):
-                sim_gui_event["resource-id"] = guievent.attrib["resource-id"]
-            else:
-                sim_gui_event["resource-id"] = "noneId"
+            sim_gui_event["resource-id"] = "noneId"
 
         hash_e = "cl_" + self.hash_event(json.dumps(sim_gui_event))
 
@@ -141,14 +141,14 @@ class Simplifier:
         sim_gui_event["eventType"] = "TYPE_VIEW_LONG_CLICKED"
         sim_gui_event["eventText"] = guievent.attrib["text"]
 
-        if len(sim_gui_event["eventText"]) != '..':  # has eventText. dont need id.
-            sim_gui_event["resource-id"] = "noneId"
+        # if len(sim_gui_event["eventText"]) != '..':  # has eventText. dont need id.
+        #     sim_gui_event["resource-id"] = "noneId"
+        # else:
+        if ("resource-id" in guievent.attrib and
+           guievent.attrib["resource-id"] != ''):
+            sim_gui_event["resource-id"] = guievent.attrib["resource-id"]
         else:
-            if ("resource-id" in guievent.attrib and
-               guievent.attrib["resource-id"] != ''):
-                sim_gui_event["resource-id"] = guievent.attrib["resource-id"]
-            else:
-                sim_gui_event["resource-id"] = "noneId"
+            sim_gui_event["resource-id"] = "noneId"
 
         hash_e = "lcl_" + self.hash_event(json.dumps(sim_gui_event))
 
@@ -168,14 +168,14 @@ class Simplifier:
         #     sim_gui_event["fromIndex"] = guievent["fromIndex"]
         #     sim_event["toIndex"] = guievent["toIndex"]
 
-        if len(sim_gui_event["eventText"]) != '..':  # has eventText. dont need id.
-            sim_gui_event["resource-id"] = "noneId"
+        # if len(sim_gui_event["eventText"]) != '..':  # has eventText. dont need id.
+        #     sim_gui_event["resource-id"] = "noneId"
+        # else:
+        if ("resource-id" in guievent.attrib and
+           guievent.attrib["resource-id"] != ''):
+            sim_gui_event["resource-id"] = guievent.attrib["resource-id"]
         else:
-            if ("resource-id" in guievent.attrib and
-               guievent.attrib["resource-id"] != ''):
-                sim_gui_event["resource-id"] = guievent.attrib["resource-id"]
-            else:
-                sim_gui_event["resource-id"] = "noneId"
+            sim_gui_event["resource-id"] = "noneId"
         hash_e = "sc_" + self.hash_event(json.dumps(sim_gui_event))
 
         return [hash_e, sim_gui_event, guievent]

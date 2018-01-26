@@ -20,18 +20,20 @@ from qlearning.environment import Environment
 from selector import Selector
 from qlearning.modelbuilder import ModelBuilder
 from utils import *
-
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
 logger = logging.getLogger(__name__)
-current_package = "org.liberty.android.fantastischmemo"
+# current_package = "org.liberty.android.fantastischmemo"
 # current_package = "com.irahul.worldclock"
 # current_package = "net.fercanet.LNM"
+current_package = "es.senselesssolutions.gpl.weightchart"
 output_path = "../output/{}/".format(current_package)
 input_path = "../input/{}/".format(current_package)
 
 hierarchy_output_path = "{}{}".format(output_path, 'hierarchy.xml')
 
 recorda_output_path = "{}recorda/".format(output_path)
-recorda_input_path = "{}recorda/{}".format(input_path, 'anymemo_recorda.json')
+recorda_input_path = "{}recorda/{}".format(input_path, 'we.json')
 
 alpha = 1.
 gamma = 0.9
@@ -143,7 +145,7 @@ def random_strategy(device, step=5, episode=10):
     print(env.q_value)
 
 
-def epsilon_greedy_strategy(device, epsilon, step=50, episode=40, recorda=False):
+def epsilon_greedy_strategy(device, epsilon, step=20, episode=30, recorda=False):
 
     print(datetime.datetime.now().isoformat())
     if recorda:
@@ -174,28 +176,40 @@ def epsilon_greedy_strategy(device, epsilon, step=50, episode=40, recorda=False)
                 env.set_current_state(activity, clickable_list)
 
                 if len(env.get_available_action()) > 0:
+                    # print "available action"
+                    # pp.pprint(env.get_available_action())
                     r = random.uniform(0.0, 1.0)
-                    if r > epsilon:
+                    if r < epsilon:
                         env.current_action = random.choice(env.get_available_action().keys())
+                        print("< epsilon Select randomly from available action")
                     else:
                         max_q_key = max(env.current_state.q_value.iteritems(), key=operator.itemgetter(1))[0]
-                        hash_action = max_q_key.split("||")[1]
-                        env.current_action = hash_action
+                        if env.current_state.q_value[max_q_key] != 0:
+                            hash_action = max_q_key.split("||")[1]
+                            env.current_action = hash_action
+                        print("> epsilon Select action with highest q value = {}".format(env.current_state.q_value[max_q_key]))
                 # print("current action {}".format(env.current_action))
                 if not env.current_action or env.current_action == 'None':
                     x = randint(0, 540)
                     y = randint(0, 540)
                     executor.perform_random_click(x, y)
                 else:
-                    # print("Perform {}".format(env.current_action.attrib))
                     executor.perform_action(env.actions[env.current_action][1])
                 time.sleep(0.5)
                 observer.dump_gui(hierarchy_output_path)
-                env.set_next_state(observer.get_current_activity(current_package),
-                                   observer.get_all_actionable_events(hierarchy_output_path))
-                # print("{} ------> {}".format(env.current_state.activity, env.next_state.activity))
-                env.add_reward(env.current_state, env.next_state)
-                env.update_q()
+                if not is_launcher(observer.get_current_activity(current_package)):
+                    env.set_next_state(observer.get_current_activity(current_package),
+                                       observer.get_all_actionable_events(hierarchy_output_path))
+                    # print("{} ------> {}".format(env.current_state.activity, env.next_state.activity))
+                    env.add_reward(env.current_state, env.next_state)
+                    env.update_q()
+                    # print(len(env.current_state.hash_actions) == len(env.current_state.q_value))
+                    # pp.pprint(env.current_state.hash_actions)
+                    # pp.pprint(env.current_state.q_value)
+                else:
+                    back_to_app()
+                    continue
+            env.reset()
         """ 
         End of and episode, start from a random state from the list of states that have been explored
         """
