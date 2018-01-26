@@ -58,7 +58,6 @@ class Environment(object):
         for key in state.q_value:
             if key in self.q_value:
                 state.q_value[key] = self.q_value[key]
-                # print("##### found q value from recorda #####")
             else:
                 self.q_value[key] = state.q_value[key]
         return state
@@ -88,8 +87,6 @@ class Environment(object):
     def add_reward(self, old_state, new_state):
         key = self.get_reward_key(old_state, new_state)
         if key not in self.reward:
-            # if old_state.id == new_state.id:
-            #     reward = - 0.01
             reward = DEFAULT_REWARD
             if len(new_state.hash_actions):
                 paired = zip(map(operator.itemgetter(0), old_state.hash_actions.values()),
@@ -105,35 +102,13 @@ class Environment(object):
             reward_key = self.get_reward_key(self.current_state, self.next_state)
             if self.next_state.activity == 'com.android.systemui.recents.RecentsActivity' or self.next_state.activity == 'com.android.launcher2.Launcher' or self.next_state.activity == "com.jiubang.golauncher.GOLauncher" or self.next_state.activity == 'com.android.launcher3.Launcher' or 'mCurrentFocus=null' in self.next_state.activity:
                 value = 0
-            # elif key in self.q_value:
-                # print(self.q_value[key])
-                # print(self.reward[self.get_reward_key(self.current_state, self.next_state)])
-                # print(max(list(self.next_state.q_value.values())))
-                # value = self.q_value[key] + self.alpha*(self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma*max(list(self.next_state.q_value.values())) - self.q_value[key])
-                # value = self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma * max(list(self.next_state.q_value.values()))
             elif len(self.next_state.q_value.values()) > 0:
-                # print("NEXT Q VALUE")
-                # print(self.next_state.q_value.values())
-                # print("CURRENT Q VALUE")
-                # print(self.current_state.q_value.values())
-                # print("max {}".format(max(list(self.next_state.q_value.values()))))
-                # value = DEFAULT_Q + self.alpha * (self.reward[self.get_reward_key(self.current_state, self.next_state)] + self.gamma * max(list(self.next_state.q_value.values())) - DEFAULT_Q)
                 value = self.reward[reward_key] + self.gamma * max(list(self.next_state.q_value.values()))
             else:
                 value = self.reward[reward_key]
             print("{} - > {}: {} -> {}. Reward {}".format(self.current_state.activity, self.next_state.activity, self.q_value[key] if key in self.q_value else 'None', value, self.reward[reward_key]))
             self.q_value[key] = value
             self.states[str(self.current_state.id)].update_q(self.current_action, value)
-            # print("AFTER MODIFIED CURRENT Q VALUE")
-            # print(self.current_state.q_value.values())
-            # print("AFTER MODIFIED ENV Q VALUE")
-            # print(self.states[str(self.current_state.id)].q_value.values())
-
-
-    def end_episode(self):
-        self.current_state = None
-        self.current_action = None
-        self.next_state = None
 
     def reset(self):
         self.current_state = None

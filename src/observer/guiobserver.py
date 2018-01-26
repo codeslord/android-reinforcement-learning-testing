@@ -10,19 +10,20 @@ class GuiObserver:
 
     def __init__(self, device=Device('60e701c935a2')):
         """Initialize with android automator's device."""
+        self.tree = None
         if type(device) is Device:
             self.device = device
         else:
             print 'ERROR: please input automator.Device as param.'
 
-    def dump_gui(self, path):
-        """Dump gui hierarchy from device and save as *.xml format."""
+    def dump_gui(self):
+        """Dump gui hierarchy from device."""
+        self.tree = None
         dd = self.device.dump().encode('utf-8')
         tree = ET.ElementTree(ET.fromstring(dd))
         self.passing_actionable_to_children(tree.getroot(),
                                             False, False, False)
-        tree.write(path)
-        # self.device.dump(path)
+        self.tree = tree
 
     def dup_event(self, actionable_event):
         """Clickable+scrollable = clickable, scrollable."""
@@ -47,21 +48,14 @@ class GuiObserver:
             res += [dup]
         return res
 
-    # def get_all_clickable_events(self, tree):
-    #     """Get all clickable events from given xml tree."""
-    #     allclickable = tree.findall(".//*[@clickable='true']")
-    #
-    #     return allclickable
-
     def get_actionable_events(self, event_type, tree):
         """Get all given event_type event."""
         rexstr = ".//*[@" + event_type + "='true']"
         all_given_events = tree.findall(rexstr)
         return all_given_events
 
-    def get_all_actionable_events(self, hierarchy_path):
+    def get_all_actionable_events(self):
         """Get all actionable events from given hierarchy.xml path."""
-        tree = self.get_tree_from_dump(hierarchy_path)
         event_types = ["clickable",
                        "long-clickable",
                        #    "focusable",
@@ -71,60 +65,13 @@ class GuiObserver:
         all_actionable_events = []
 
         for e in event_types:
-            all_actionable_events += self.get_actionable_events(e, tree)
+            all_actionable_events += self.get_actionable_events(e, self.tree)
 
         dup_actionable_events = []
         for e in all_actionable_events:
             dup_actionable_events += self.dup_event(e)
 
         return dup_actionable_events
-
-    # def gen_back_event(self):
-    #     """WIP: Generate click 'back button' on android device event."""
-
-    def get_tree_from_dump(self, hierarchyPath):
-        """Get tree from dump hierarchy path."""
-        tree = ET.parse(hierarchyPath)
-        return tree
-
-    def find_gui_from_event(self, hierarchyPath, event):
-        """Find and return GUI component given an event.
-
-        return Element from ElementTree.
-        """
-        tree = self.get_tree_from_dump(hierarchyPath)
-        print 'findguifromevent: ', event
-        if event['resource-id'] == 'typeback':
-            return
-        if event['resource-id'] == 'noneId':
-            resid = ""
-        else:
-            resid = event['resource-id']
-        txt = event['eventText']
-        print 'gui_from_event>>>>>>>>>>>>>>>>>', event
-        # rexstr = ".//*[@" + 'resource-id' + "='" + resid + "']"
-        rexstr = ".//*[@" + 'text' + "='" + txt + "']"
-        all_given_events = tree.findall(rexstr)
-        if len(all_given_events) == 0:
-            # rexstr = ".//*[@" + 'text' + "='" + txt + "']"
-            rexstr = ".//*[@" + 'resource-id' + "='" + resid + "']"
-            all_given_events += tree.findall(rexstr)
-        elif len(all_given_events) > 1:
-            # rexstr = ".//*[@" + 'text' + "='" + txt + "']"
-            rexstr = ".//*[@" + 'resource-id' + "='" + resid + "']"
-            all_given_events = list(set(all_given_events) -
-                                    set(tree.findall(rexstr)))
-        # else 1.... ok
-
-        if len(all_given_events) == 0:
-            print('SOMETHING WENT WRONG WITH', event)
-        elif len(all_given_events) == 1:
-            return all_given_events[0]
-        else:  # debug
-            if len(all_given_events) > 1:
-                print 'OMG MORE THAN ONE--------------------------'
-                print all_given_events
-                return all_given_events[0]
 
     def get_current_activity(self, current_package):
         """Get current activity of current package."""
