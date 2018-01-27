@@ -15,12 +15,15 @@ from uiautomator import Device
 from dataprocessor import DataProcessor
 from executor import Executor
 from observer.guiobserver import GuiObserver
-from qlearning.environment import Environment
+from qlearning.agent import Agent
 
 from utils import *
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
+logging.basicConfig(filename='all.log', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
+
 
 APP = {"any": {"current_package": "org.liberty.android.fantastischmemo",
                "recorda_file": "any_recorda.json"},
@@ -59,7 +62,7 @@ def is_launcher(activity):
 
 def back_to_app():
     """Go back."""
-    print 'backtoapp'
+    logger.info('backtoapp')
     check_output(['adb', 'shell', 'am', 'instrument',
                  '-e', 'coverage', 'true',
                   '{}/{}.EmmaInstrument.EmmaInstrumentation'.format(package, package)])
@@ -72,7 +75,7 @@ def jump_to_activity(activity):
 
 
 def random_strategy(device, step=5, episode=10):
-    env = Environment(alpha, gamma)
+    env = Agent(alpha, gamma)
     observer = GuiObserver(device)
     executor = Executor(device)
     for j in tqdm(range(episode)):
@@ -128,14 +131,14 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
         with open(recorda_input_path, 'r') as data_file:
             events = json.load(data_file)
         dp.process_all_events(events)
-        env = Environment(alpha, gamma, recorda_path=recorda_output_path)
+        agent = Agent(alpha, gamma, recorda_path=recorda_output_path)
     else:
-        env = Environment(alpha, gamma)
+        agent = Agent(alpha, gamma)
     observer = GuiObserver(device)
     executor = Executor(device)
     for j in tqdm(range(episode)):
-        print("------------Episode {}---------------".format(j))
-        for i in range(step):
+        logger.info("------------Episode {}---------------".format(j))
+        for i in tqdm(range(step)):
             observer.dump_gui()
             activity = observer.get_current_activity(package)
             clickable_list = observer.get_all_actionable_events()
@@ -147,48 +150,49 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
                 executor.perform_back()
                 continue
             else:
-                env.set_current_state(activity, clickable_list)
+                agent.set_current_state(activity, clickable_list)
 
-                if len(env.get_available_action()) > 0:
+                if len(agent.get_available_action()) > 0:
                     r = random.uniform(0.0, 1.0)
                     if r < epsilon:
-                        env.current_action = random.choice(env.get_available_action().keys())
-                        print("< epsilon Select randomly from available action")
+                        agent.current_action = random.choice(agent.get_available_action().keys())
+                        logger.info('Select randomly')
                     else:
-                        max_q_key = max(env.current_state.q_value.iteritems(), key=operator.itemgetter(1))[0]
-                        if env.current_state.q_value[max_q_key] != 0:
+                        max_q_key = max(agent.current_state.q_value.iteritems(), key=operator.itemgetter(1))[0]
+                        if agent.current_state.q_value[max_q_key] != 0:
                             hash_action = max_q_key.split("||")[1]
-                            env.current_action = hash_action
-                        print("> epsilon Select action with highest q value = {}".format(env.current_state.q_value[max_q_key]))
-                if not env.current_action or env.current_action == 'None':
+                            agent.current_action = hash_action
+                        logger.info("Select action with highest q value = {}".format(agent.current_state.q_value[max_q_key]))
+                if not agent.current_action or agent.current_action == 'None':
                     x = randint(0, 540)
                     y = randint(0, 540)
                     executor.perform_random_click(x, y)
                 else:
-                    executor.perform_action(env.actions[env.current_action][1])
-                time.sleep(0.5)
+                    executor.perform_action(agent.actions[agent.current_action][1])
+                time.sleep(0.2)
                 observer.dump_gui()
                 if not is_launcher(observer.get_current_activity(package)):
-                    env.set_next_state(observer.get_current_activity(package), observer.get_all_actionable_events())
-                    env.add_reward(env.current_state, env.next_state)
-                    env.update_q()
+                    agent.set_next_state(observer.get_current_activity(package), observer.get_all_actionable_events())
+                    agent.add_reward(agent.current_state, agent.next_state)
+                    agent.add_reward_unvisited_action()
+                    agent.update_q()
                 else:
                     back_to_app()
                     continue
-            env.reset()
+            agent.reset()
         """ 
         End of and episode, start from a random state from the list of states that have been explored
         """
-        for i in range(len(env.states)):
-            random_state = env.get_random_state()
+        for i in range(len(agent.states)):
+            random_state = agent.get_random_state()
             output = jump_to_activity(random_state.activity)
             if 'Error' not in output:
                 break
     print("#############STATE###########")
-    for s in env.states.values():
-        pp.pprint(s)
+    for s in agent.states.values():
+        print(str(s))
     print("#############Q value##########")
-    pp.pprint(env.q_value)
+    pp.pprint(agent.q_value)
 
     print(datetime.datetime.now().isoformat())
 
@@ -212,6 +216,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('device', help='device name')
     parser.add_argument('app', help='choose app name among : note, any, clock, wei')
+    parser.add_argument('step', help='Length of an episode')
+    parser.add_argument('episode', help='Number of episode', type=int)
     args = parser.parse_args()
     if not is_device_available(args.device):
         logger.error('Please connect device', args.device)
@@ -220,7 +226,7 @@ if __name__ == "__main__":
     d = Device(args.device)
 
     if args.app not in APP:
-        logger.error('Please choose an app', args.device)
+        logger.error('Please choose an app and number of step and episode', args.device)
         sys.exit()
 
     package = APP[args.app]['current_package']
@@ -236,6 +242,6 @@ if __name__ == "__main__":
     if not os.path.isdir(input_path):
         os.mkdir(input_path)
 
-    epsilon_greedy_strategy(d, package, 100, 30, recorda_input_path=recorda_input_path, recorda_output_path=recorda_output_path)
+    epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda_input_path=recorda_input_path, recorda_output_path=recorda_output_path)
 
     logger.info('----DONE----')

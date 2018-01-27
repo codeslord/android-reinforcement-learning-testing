@@ -5,7 +5,10 @@ import random
 from uiautomator import Device
 import subprocess
 from random import randint
-
+import logging
+logging.basicConfig(filename='all.log', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s')
+logger = logging.getLogger(__name__)
 class Executor:
     """Execute the Events."""
 
@@ -39,22 +42,26 @@ class Executor:
         x1, y1 = self.get_random_point_from_bound(bound_str)
         x2, y2 = self.get_random_point_from_bound(bound_str)
         self.device.drag(x1, y1, x2, y2, steps=30)
-        print 'scroll:', event.attrib['resource-id']
-        print 'from:', x1, y1, 'to:', x2, y2
+        logger.info('scroll: '+ event.attrib['resource-id'] + ' from: ' + str(x1) + ' ' + str(y1) + 'to:'+ str(x2)+' ' + str(y2))
         return True
 
     def perform_click(self, event):
         """Perform click at x,y from eventbound."""
         x, y = self.get_center_from_bound(event.attrib['bounds'])
         self.device.click(x, y)
-        print 'click:', event.attrib['text']
-        print 'at', x, y
+        logger.info('click: '+ event.attrib['text'] + 'at' + str(x) +' ' + str(y))
+        return True
+
+    def perform_longclick(self, event):
+        """Perform click at x,y from eventbound."""
+        x, y = self.get_center_from_bound(event.attrib['bounds'])
+        self.device.long_click(x, y)
+        logger.info('longclick: '+ event.attrib['text']+ ' at '+ str(x)+' ' + str(y))
         return True
 
     def perform_random_click(self, x, y):
         """Perform random click at x,y."""
-        print 'randomclick:'
-        print 'at', x, y
+        logger.info('random click at ' + str(x) +' ' + str(y))
         self.device.click(x, y)
         return True
 
@@ -100,14 +107,6 @@ class Executor:
             subprocess.call(['adb', 'shell', 'input', 'keyboard', 'text',
                             '"'+text+'"'])
             subprocess.call(['adb', 'shell', 'input', 'keyevent', '111'])
-
-    def perform_longclick(self, event):
-        """Perform click at x,y from eventbound."""
-        x, y = self.get_center_from_bound(event.attrib['bounds'])
-        self.device.long_click(x, y)
-        print 'longclick:', event.attrib['text']
-        print 'at', x, y
-        return True
 
     # TODO: support multiple action.
     def perform_action_with_hash(self, event, h_event):

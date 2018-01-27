@@ -48,10 +48,11 @@ def hash_all_gui_event(actionable_events):
     """Hash all gui event with md5. {hash1: event1, ....}."""
     hash_events = {}
     for e in actionable_events:
-        simplifier = Simplifier()
-        sim = simplifier.simplification_gui_event(e)
-        h_event = sim[0]
-        hash_events[h_event] = [sim[1], sim[2]]
+        if ('com.android.systemui:id/' not in e.attrib["resource-id"] and 'com.google.android.googlequicksearchbox' not in e.attrib["resource-id"]) or e.attrib["resource-id"] == 'com.android.systemui:id/back':
+            simplifier = Simplifier()
+            sim = simplifier.simplification_gui_event(e)
+            h_event = sim[0]
+            hash_events[h_event] = [sim[1], sim[2]]
     return hash_events
 
 

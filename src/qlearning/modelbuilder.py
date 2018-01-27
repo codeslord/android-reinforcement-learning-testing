@@ -12,7 +12,7 @@ class ModelBuilder:
         """Initialize the class."""
         self.raw_events = raw_events  # event from Recorda
         # self.h_events, self.h_events_str = self.create_hash_events(raw_events)
-        self.h_event_freq = self.create_hash_events_with_frequency(raw_events)
+        self.h_event_count, self.h_event_freq = self.create_hash_events_with_frequency(raw_events)
 
     def trim_newline(self, text):
         """Remove empty newline or trailing space."""
@@ -62,7 +62,7 @@ class ModelBuilder:
                 else:
                     hash_events_count[h_event] = 1
         hash_freq = {k: v/float(len(raw_events)) for k, v in hash_events_count.items()}
-        return hash_freq
+        return hash_events_count, hash_freq
 
     def save_hash_events(self, eventstr, filename):
         """Hash all event to a file."""
