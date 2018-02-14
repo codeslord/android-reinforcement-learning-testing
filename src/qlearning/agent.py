@@ -46,8 +46,10 @@ class Agent(object):
                     for hash, value in mb.h_event_count.items():
                         key = "{}||{}".format(activity_name, hash).encode('utf-8').strip()
                         self.reward_unvisited_action[key] = value
-        pp.pprint(self.q_value)
-        pp.pprint([str(state) for state in self.states.values()])
+        logger.info("Initial Q value from recorda")
+        logger.info(self.q_value)
+        logger.info("Initial state from recorda")
+        logger.info([str(state) for state in self.states.values()])
 
     def is_known_state(self, activity, clickable_actions):
         known_state = None
@@ -97,9 +99,10 @@ class Agent(object):
         if key not in self.reward:
             reward = DEFAULT_REWARD
             if len(new_state.hash_actions):
-                paired = zip(map(operator.itemgetter(0), old_state.hash_actions.values()),
-                             map(operator.itemgetter(0), new_state.hash_actions.values()))
-                shared_items = [(x, y) for (x, y) in paired if x == y]
+                # paired = zip(map(operator.itemgetter(0), old_state.hash_actions.values()),
+                #              map(operator.itemgetter(0), new_state.hash_actions.values()))
+                # shared_items = [(x, y) for (x, y) in paired if x == y]
+                shared_items = set(old_state.hash_actions.keys()) & set(new_state.hash_actions.keys())
                 similarity_counter = len(shared_items)
                 reward = (len(new_state.hash_actions) - similarity_counter)/float(len(new_state.hash_actions))
             self.reward[key] = reward

@@ -81,8 +81,9 @@ def equal_actions(clickable_actions1, clickable_actions2):
 def equal_hash_actions(hash1, hash2):
     if len(hash1) != len(hash2):
         return False
-    paired = zip(map(operator.itemgetter(0), hash1.values()), map(operator.itemgetter(0), hash2.values()))
-    shared_items = [(x, y) for (x, y) in paired if x == y]
+    # paired = zip(map(operator.itemgetter(0), hash1.values()), map(operator.itemgetter(0), hash2.values()))
+    # shared_items = [(x, y) for (x, y) in paired if x == y]
+    shared_items = set(hash1.keys()) & set(hash2.keys())
     if len(shared_items) != len(hash1):
         return False
     return True

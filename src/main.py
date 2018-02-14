@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 APP = {"any": {"current_package": "org.liberty.android.fantastischmemo",
                "recorda_file": "any_recorda.json"},
-       "wei": {"current_package": "oes.senselesssolutions.gpl.weightchart",
+       "wei": {"current_package": "es.senselesssolutions.gpl.weightchart",
                "recorda_file": "wei_recorda.json"},
        "note": {"current_package": "net.fercanet.LNM",
                "recorda_file": "any_recorda.json"},
@@ -74,58 +74,8 @@ def jump_to_activity(activity):
     return output
 
 
-def random_strategy(device, step=5, episode=10):
-    env = Agent(alpha, gamma)
-    observer = GuiObserver(device)
-    executor = Executor(device)
-    for j in tqdm(range(episode)):
-        print("------------Episode {}---------------".format(j))
-        for i in tqdm(range(step)):
-            time.sleep(0.5)
-            observer.dump_gui(hierarchy_output_path)
-            activity = observer.get_current_activity(package)
-            clickable_list = observer.get_all_actionable_events(hierarchy_output_path)
-
-            if is_launcher(activity) or 'Application Error' in activity:
-                back_to_app()
-                continue
-            elif is_out_of_app(activity):
-                executor.perform_back()
-                continue
-            else:
-
-                env.set_current_state(activity, clickable_list)
-                if len(env.get_available_action()):
-                    env.current_action = random.choice(env.get_available_action())
-
-                if not env.current_action:
-                    x = randint(0, 540)
-                    y = randint(0, 540)
-                    executor.perform_random_click(x, y)
-                else:
-                    # print("Perform {}".format(env.current_action.attrib))
-                    executor.perform_action(env.current_action)
-
-                time.sleep(0.5)
-                env.set_next_state(observer.get_current_activity(package),
-                                   observer.get_all_actionable_events(hierarchy_output_path))
-                print("{} ------> {}".format(env.current_state.activity, env.next_state.activity))
-                env.add_reward(env.current_state, env.next_state)
-                env.update_q()
-        """ 
-        End of and episode, start from a random state from the list of states that have been explored
-        """
-        random_state = env.get_random_state()
-        jump_to_activity(random_state.activity)
-    print("#############STATE###########")
-    print(env.states)
-    print("QQQQQQQQQQQQQQQQQQQQQQQQQ")
-    print(env.q_value)
-
-
 def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_default ,recorda_input_path=None, recorda_output_path=None):
-
-    print(datetime.datetime.now().isoformat())
+    logger.info(datetime.datetime.now().isoformat())
     if recorda_input_path and recorda_output_path:
         dp = DataProcessor(recorda_output_path)
         with open(recorda_input_path, 'r') as data_file:
@@ -188,13 +138,14 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
             output = jump_to_activity(random_state.activity)
             if 'Error' not in output:
                 break
-    print("#############STATE###########")
+    """ LOGGING """
+    logger.info("#############STATE###########")
     for s in agent.states.values():
-        print(str(s))
-    print("#############Q value##########")
-    pp.pprint(agent.q_value)
+        logger.info(str(s))
+    logger.info("#############Q value##########")
+    logger.info(agent.q_value)
 
-    print(datetime.datetime.now().isoformat())
+    logger.info(datetime.datetime.now().isoformat())
 
 
 def is_device_available(device_num):

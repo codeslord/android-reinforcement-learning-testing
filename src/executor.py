@@ -61,7 +61,7 @@ class Executor:
 
     def perform_random_click(self, x, y):
         """Perform random click at x,y."""
-        logger.info('random click at ' + str(x) +' ' + str(y))
+        logger.info('random click at ' + str(x) + ' ' + str(y))
         self.device.click(x, y)
         return True
 
