@@ -43,7 +43,6 @@ epsilon_default = 0.8
 def is_out_of_app(activity):
     """Check is out of app."""
     if ('com.google.android' in activity) or ('com.android' in activity) or 'mCurrentFocus=null' in activity:
-
         append_string_to_file("LEAVE APP!")
         return True
     else:
@@ -74,8 +73,8 @@ def jump_to_activity(activity):
     return output
 
 
-def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_default ,recorda_input_path=None, recorda_output_path=None):
-    logger.info(datetime.datetime.now().isoformat())
+def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_default, recorda_input_path=None, recorda_output_path=None):
+    start_time = datetime.datetime.now()
     if recorda_input_path and recorda_output_path:
         dp = DataProcessor(recorda_output_path)
         with open(recorda_input_path, 'r') as data_file:
@@ -89,47 +88,58 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
     for j in tqdm(range(episode)):
         logger.info("------------Episode {}---------------".format(j))
         for i in tqdm(range(step)):
-            observer.dump_gui()
-            activity = observer.get_current_activity(package)
-            clickable_list = observer.get_all_actionable_events()
+            # start = datetime.datetime.now()
+            if not (observer.activity and observer.actionable_events):
+                observer.dump_gui(package)
 
-            if is_launcher(activity) or 'Application Error' in activity:
-                back_to_app()
-                continue
-            elif is_out_of_app(activity):
-                executor.perform_back()
-                continue
+            # if is_launcher(observer.activity) or 'Application Error' in observer.activity:
+            #     back_to_app()
+            #     observer.reset()
+            #     continue
+            # elif is_out_of_app(observer.activity):
+            #     executor.perform_back()
+            #     continue
+            # else:
+            if agent.next_state:
+                agent.current_state = agent.next_state
             else:
-                agent.set_current_state(activity, clickable_list)
+                print("No next state")
+                agent.set_current_state(observer.activity, observer.actionable_events)
+            # print("Step 1: {}".format(datetime.datetime.now() - start))
 
-                if len(agent.get_available_action()) > 0:
-                    r = random.uniform(0.0, 1.0)
-                    if r < epsilon:
-                        agent.current_action = random.choice(agent.get_available_action().keys())
-                        logger.info('Select randomly')
-                    else:
-                        max_q_key = max(agent.current_state.q_value.iteritems(), key=operator.itemgetter(1))[0]
-                        if agent.current_state.q_value[max_q_key] != 0:
-                            hash_action = max_q_key.split("||")[1]
-                            agent.current_action = hash_action
-                        logger.info("Select action with highest q value = {}".format(agent.current_state.q_value[max_q_key]))
-                if not agent.current_action or agent.current_action == 'None':
-                    x = randint(0, 540)
-                    y = randint(0, 540)
-                    executor.perform_random_click(x, y)
+            if len(agent.get_available_action()) > 0:
+                r = random.uniform(0.0, 1.0)
+                if r < epsilon:
+                    agent.current_action = random.choice(agent.get_available_action().keys())
+                    logger.info('Select randomly')
                 else:
-                    executor.perform_action(agent.actions[agent.current_action][1])
-                time.sleep(0.2)
-                observer.dump_gui()
-                if not is_launcher(observer.get_current_activity(package)):
-                    agent.set_next_state(observer.get_current_activity(package), observer.get_all_actionable_events())
-                    agent.add_reward(agent.current_state, agent.next_state)
-                    agent.add_reward_unvisited_action()
-                    agent.update_q()
-                else:
-                    back_to_app()
-                    continue
+                    max_q_key = max(agent.current_state.q_value.iteritems(), key=operator.itemgetter(1))[0]
+                    if agent.current_state.q_value[max_q_key] != 0:
+                        hash_action = max_q_key.split("||")[1]
+                        agent.current_action = hash_action
+                    logger.info("Select action with highest q value = {}".format(agent.current_state.q_value[max_q_key]))
+            # print("Step 2: {}".format(datetime.datetime.now() - start))
+            if not agent.current_action or agent.current_action == 'None':
+                x = randint(0, 540)
+                y = randint(0, 540)
+                executor.perform_random_click(x, y)
+            else:
+                executor.perform_action(agent.actions[agent.current_action][1])
+            # print("Step 3: {}".format(datetime.datetime.now() - start))
+            time.sleep(0.2)
+            observer.dump_gui(package)
+            # print("Step 4: {}".format(datetime.datetime.now() - start))
+            if not (is_launcher(observer.activity) or is_out_of_app(observer.activity) or 'Application Error' in observer.activity):
+                agent.set_next_state(observer.activity, observer.actionable_events)
+                agent.add_reward(agent.current_state, agent.next_state)
+                agent.add_reward_unvisited_action()
+                agent.update_q()
+            else:
+                back_to_app()
+                observer.reset()
+                continue
             agent.reset()
+            # print("Step 5: {}".format(datetime.datetime.now() - start))
         """ 
         End of and episode, start from a random state from the list of states that have been explored
         """
@@ -145,7 +155,7 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
     logger.info("#############Q value##########")
     logger.info(agent.q_value)
 
-    logger.info(datetime.datetime.now().isoformat())
+    logger.info("End of process. Time: {}".format(datetime.datetime.now() - start_time))
 
 
 def is_device_available(device_num):
@@ -171,7 +181,7 @@ if __name__ == "__main__":
     parser.add_argument('episode', help='Number of episode', type=int)
     args = parser.parse_args()
     if not is_device_available(args.device):
-        logger.error('Please connect device', args.device)
+        logger.error('Please connect device', str(args.device))
         sys.exit()
 
     d = Device(args.device)
@@ -194,5 +204,6 @@ if __name__ == "__main__":
         os.mkdir(input_path)
 
     epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda_input_path=recorda_input_path, recorda_output_path=recorda_output_path)
+    # epsilon_greedy_strategy(d, package, int(args.step), args.episode)
 
     logger.info('----DONE----')

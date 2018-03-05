@@ -1,12 +1,13 @@
 # Test environment
 import random
 from state import *
-from simplifier import Simplifier
 import os
 import json
 from modelbuilder import ModelBuilder
 import logging
 import pprint
+import hashlib
+import datetime
 pp = pprint.PrettyPrinter(indent=4)
 logging.basicConfig(filename='all.log', level=logging.DEBUG)
 logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s')
@@ -22,7 +23,7 @@ class Agent(object):
         self.actions = {}  # hash_action : [sim_action, action]
         self.reward = {}  # old_state_id|new_state_id : value
         self.reward_unvisited_action = {} # state| hash_action : value -> count how many times this action has been executed. Same key as q value
-        self.q_value = {}  # state| hash_action : value
+        self.q_value = {}  # state|| hash_action : value
         self.current_state = None
         self.next_state = None
         self.current_action = None
@@ -36,7 +37,7 @@ class Agent(object):
                     activity_name = filename[len(package) + 1: -5]
                 else:
                     activity_name = filename[0:-5]
-                self.add_state(activity_name, [])
+                self.add_state(State(activity_name, []))
                 with open(os.path.join(recorda_path, filename)) as file:
                     recorda_raw_actions = json.load(file)
                     mb = ModelBuilder(recorda_raw_actions)
@@ -52,17 +53,27 @@ class Agent(object):
         logger.info([str(state) for state in self.states.values()])
 
     def is_known_state(self, activity, clickable_actions):
-        known_state = None
-        hash_action = hash_all_gui_event(clickable_actions)
-        for s in self.states.values():
-            if s.activity == activity and equal_hash_actions(hash_action, s.hash_actions):
-                known_state = s
-                # print("Found existing state {} - {} actions !!!!!".format(s.activity, len(s.hash_actions)))
-        return known_state
+        hash_actions = hash_all_gui_event(clickable_actions)
+        hash_object = {
+            "activity": activity,
+            "actions": hash_actions.keys()
+        }
+        id_to_compare = hashlib.md5(str(hash_object)).hexdigest()
+        if id_to_compare in self.states:
+            return self.states[id_to_compare]
+        # for s in self.states.values():
+        #     if s.activity == activity and equal_hash_actions(hash_actions, s.hash_actions):
+        #         known_state = s
+        #         print("Found existing state {} - {} actions !!!!!".format(s.activity, len(s.hash_actions)))
+        #         if id_to_compare in self.states:
+        #             print("state hash validated")
+        #         else:
+        #             print("state hash problem")
+        # print("is_known_state {}".format(datetime.datetime.now() - start))
+        return None
 
     """ !!!!! Always call is_known_state before this"""
-    def add_state(self, activity, clickable_components):
-        state = State(activity, clickable_components)
+    def add_state(self, state):
         self.states[str(state.id)] = state
         self.actions.update(state.hash_actions)
         for key in state.q_value:
@@ -73,19 +84,19 @@ class Agent(object):
         return state
 
     def set_current_state(self, activity, clickable_components):
-        known_state = self.is_known_state(activity, clickable_components)
-        if known_state:
-            self.current_state = known_state
+        state = State(activity, clickable_components)
+        if state.id in self.states:
+            self.current_state = self.states[state.id]
         else:
-            s = self.add_state(activity, clickable_components)
+            s = self.add_state(state)
             self.current_state = s
 
     def set_next_state(self, activity, clickable_components):
-        known_state = self.is_known_state(activity, clickable_components)
-        if known_state:
-            self.next_state = known_state
+        state = State(activity, clickable_components)
+        if state.id in self.states:
+            self.next_state = self.states[state.id]
         else:
-            s = self.add_state(activity, clickable_components)
+            s = self.add_state(state)
             self.next_state = s
 
     def get_available_action(self):
@@ -138,7 +149,6 @@ class Agent(object):
     def reset(self):
         self.current_state = None
         self.current_action = None
-        self.next_state = None
 
     def get_random_state(self):
         return random.choice(self.states.values())

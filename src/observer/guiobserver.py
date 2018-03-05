@@ -10,20 +10,12 @@ class GuiObserver:
 
     def __init__(self, device=Device('60e701c935a2')):
         """Initialize with android automator's device."""
-        self.tree = None
+        self.activity = None
+        self.actionable_events = None
         if type(device) is Device:
             self.device = device
         else:
-            print 'ERROR: please input automator.Device as param.'
-
-    def dump_gui(self):
-        """Dump gui hierarchy from device."""
-        self.tree = None
-        dd = self.device.dump().encode('utf-8')
-        tree = ET.ElementTree(ET.fromstring(dd))
-        self.passing_actionable_to_children(tree.getroot(),
-                                            False, False, False)
-        self.tree = tree
+            print 'ERROR: please input automator device as param.'
 
     def dup_event(self, actionable_event):
         """Clickable+scrollable = clickable, scrollable."""
@@ -54,7 +46,7 @@ class GuiObserver:
         all_given_events = tree.findall(rexstr)
         return all_given_events
 
-    def get_all_actionable_events(self):
+    def get_all_actionable_events(self, tree):
         """Get all actionable events from given hierarchy.xml path."""
         event_types = ["clickable",
                        "long-clickable",
@@ -65,7 +57,7 @@ class GuiObserver:
         all_actionable_events = []
 
         for e in event_types:
-            all_actionable_events += self.get_actionable_events(e, self.tree)
+            all_actionable_events += self.get_actionable_events(e, tree)
 
         dup_actionable_events = []
         for e in all_actionable_events:
@@ -122,3 +114,18 @@ class GuiObserver:
             return True
         else:
             return False
+
+    def dump_gui(self, package):
+        """
+        Dump gui hierarchy from device.
+        Get activity and actionable events
+        """
+        dd = self.device.dump().encode('utf-8')
+        tree = ET.ElementTree(ET.fromstring(dd))
+        self.passing_actionable_to_children(tree.getroot(), False, False, False)
+        self.activity = self.get_current_activity(package)
+        self.actionable_events = self.get_all_actionable_events(tree)
+
+    def reset(self):
+        self.activity = None
+        self. actionable_events = None

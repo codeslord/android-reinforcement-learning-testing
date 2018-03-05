@@ -41,7 +41,7 @@ class Executor:
         bound_str = event.attrib['bounds']
         x1, y1 = self.get_random_point_from_bound(bound_str)
         x2, y2 = self.get_random_point_from_bound(bound_str)
-        self.device.drag(x1, y1, x2, y2, steps=30)
+        self.device.drag(x1, y1, x2, y2, steps=1)
         logger.info('scroll: '+ event.attrib['resource-id'] + ' from: ' + str(x1) + ' ' + str(y1) + 'to:'+ str(x2)+' ' + str(y2))
         return True
 
