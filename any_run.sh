@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-step=20
+step=15
 ep=100
 
 emulator -avd Galaxy_Nexus_API_23 -wipe-data &

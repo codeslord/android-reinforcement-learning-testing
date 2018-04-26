@@ -72,7 +72,6 @@ class Agent(object):
         # print("is_known_state {}".format(datetime.datetime.now() - start))
         return None
 
-    """ !!!!! Always call is_known_state before this"""
     def add_state(self, state):
         self.states[str(state.id)] = state
         self.actions.update(state.hash_actions)
@@ -134,9 +133,9 @@ class Agent(object):
 
     def update_q(self):
         if self.current_state and self.next_state:
-            key = get_state_hash_action_key(self.current_state, self.current_action)
+            key = get_qvalue_key(self.current_state, self.current_action)
             reward_key = self.get_reward_key(self.current_state, self.next_state)
-            if self.next_state.activity == 'com.android.systemui.recents.RecentsActivity' or self.next_state.activity == 'com.android.launcher2.Launcher' or self.next_state.activity == "com.jiubang.golauncher.GOLauncher" or self.next_state.activity == 'com.android.launcher3.Launcher' or 'mCurrentFocus=null' in self.next_state.activity:
+            if 'com.android' in self.next_state.activity or 'com.google.android' in self.next_state.activity or 'launcher' in self.next_state.activity or 'mCurrentFocus=null' in self.next_state.activity:
                 value = 0
             elif len(self.next_state.q_value.values()) > 0:
                 value = self.reward[reward_key] + self.get_reward_unvisited_action() + self.gamma * max(list(self.next_state.q_value.values()))

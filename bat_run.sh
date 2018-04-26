@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-step=15
-ep=200
+step=20
+ep=250
 
 emulator -avd Galaxy_Nexus_API_23 -wipe-data &
 
@@ -9,8 +9,8 @@ sleep 60s
 
 adb logcat -c
 
-adb install apk/WeightChart.apk
+adb install apk/BatteryDog.apk
 
 cd src
 
-python main.py emulator-5554 wei $step $ep
+python main.py emulator-5554 bat $step $ep

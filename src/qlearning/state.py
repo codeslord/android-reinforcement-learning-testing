@@ -15,12 +15,11 @@ class State(object):
     q_value = {}
 
     def __init__(self, activity_name, clickable_components):
-        # self.id = uuid.uuid4()
         self.activity = activity_name
         self.hash_actions = hash_all_gui_event(clickable_components)
         self.q_value = {}
         for c in self.hash_actions:
-            self.q_value[get_state_hash_action_key(self, c)] = DEFAULT_Q
+            self.q_value[get_qvalue_key(self, c)] = DEFAULT_Q
         hash_object = {
             "activity": self.activity,
             "actions": self.hash_actions.keys()
@@ -28,7 +27,7 @@ class State(object):
         self.id = hashlib.md5(str(hash_object)).hexdigest()
 
     def update_q(self, hash_action, value):
-        key = get_state_hash_action_key(self, hash_action)
+        key = get_qvalue_key(self, hash_action)
         if key in self.q_value:
             self.q_value[key] = value
 
@@ -40,7 +39,7 @@ class State(object):
         return "{} - {} actions: {}".format(self.activity, len(self.hash_actions), action_str)
 
 
-def get_state_hash_action_key(state, hash_action):
+def get_qvalue_key(state, hash_action):
     return "{}||{}".format(state.activity, hash_action).encode('utf-8').strip()
 
 
@@ -84,12 +83,12 @@ def hash_all_gui_event(actionable_events):
 #     return True
 
 
-def equal_hash_actions(hash1, hash2):
-    if len(hash1) != len(hash2):
-        return False
-    # paired = zip(map(operator.itemgetter(0), hash1.values()), map(operator.itemgetter(0), hash2.values()))
-    # shared_items = [(x, y) for (x, y) in paired if x == y]
-    shared_items = set(hash1.keys()) & set(hash2.keys())
-    if len(shared_items) != len(hash1):
-        return False
-    return True
+# def equal_hash_actions(hash1, hash2):
+#     if len(hash1) != len(hash2):
+#         return False
+#     # paired = zip(map(operator.itemgetter(0), hash1.values()), map(operator.itemgetter(0), hash2.values()))
+#     # shared_items = [(x, y) for (x, y) in paired if x == y]
+#     shared_items = set(hash1.keys()) & set(hash2.keys())
+#     if len(shared_items) != len(hash1):
+#         return False
+#     return True

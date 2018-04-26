@@ -33,6 +33,10 @@ APP = {"any": {"current_package": "org.liberty.android.fantastischmemo",
                "recorda_file": "any_recorda.json"},
        "clock": {"current_package": "com.irahul.worldclock",
                "recorda_file": "clock_recorda.json"},
+       "bat": {"current_package": "net.sf.andbatdog.batterydog",
+               "recorda_file": "bat_recorda.json"},
+       "stuff": {"current_package": "de.freewarepoint.whohasmystuff",
+                 "recorda_file": "stuff_recorda_vm.json"}
        }
 
 alpha = 1.
@@ -195,8 +199,12 @@ if __name__ == "__main__":
     output_path = "../output/{}/".format(package)
     input_path = "../input/{}/".format(package)
 
-    recorda_output_path = "{}recorda/".format(output_path)
-    recorda_input_path = "{}recorda/{}".format(input_path, APP[args.app]['recorda_file'])
+    if APP[args.app]['recorda_file'] != "":
+        recorda_output_path = "{}recorda/".format(output_path)
+        recorda_input_path = "{}recorda/{}".format(input_path, APP[args.app]['recorda_file'])
+    else:
+        recorda_output_path = None
+        recorda_input_path = None
 
     if not os.path.isdir(output_path):
         os.mkdir(output_path)
