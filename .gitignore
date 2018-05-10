@@ -3,3 +3,5 @@ output/*
 src/*.pyc
 execlog
 *.log
+avd_templates/*
+src/*/*.pyc
