@@ -6,18 +6,20 @@ import os
 import random
 import sys
 import time
+import json
+import errno
+import cProfile
 from random import randint
 from subprocess import check_output
 
 from tqdm import tqdm  # show progress bar
 from uiautomator import Device
 
-from dataprocessor import DataProcessor
-from executor import Executor
+from usagelogprocessor.dataprocessor import DataProcessor
+from executor.executor import Executor
 from observer.guiobserver import GuiObserver
 from qlearning.agent import Agent
 
-from utils import *
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
 logging.basicConfig(filename='all.log', level=logging.DEBUG)
@@ -43,11 +45,18 @@ alpha = 1.
 gamma = 0.9
 epsilon_default = 0.8
 
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
 
 def is_out_of_app(activity):
     """Check is out of app."""
     if ('com.google.android' in activity) or ('com.android' in activity) or 'mCurrentFocus=null' in activity:
-        append_string_to_file("LEAVE APP!")
         return True
     else:
         return False
@@ -57,7 +66,6 @@ def is_launcher(activity):
     """Check is out of app."""
     # print 'activity: ', activity
     if activity == 'com.android.launcher2.Launcher' or activity == "com.jiubang.golauncher.GOLauncher" or activity == 'com.android.launcher3.Launcher':
-        append_string_to_file("LEAVE APP LAUNCHER!")
         return True
     else:
         return False
@@ -185,7 +193,7 @@ if __name__ == "__main__":
     parser.add_argument('episode', help='Number of episode', type=int)
     args = parser.parse_args()
     if not is_device_available(args.device):
-        logger.error('Please connect device', str(args.device))
+        logger.error('Please connect device' + str(args.device))
         sys.exit()
 
     d = Device(args.device)
@@ -207,11 +215,12 @@ if __name__ == "__main__":
         recorda_input_path = None
 
     if not os.path.isdir(output_path):
-        os.mkdir(output_path)
+        mkdir_p(output_path)
     if not os.path.isdir(input_path):
-        os.mkdir(input_path)
+        mkdir_p(input_path)
 
-    epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda_input_path=recorda_input_path, recorda_output_path=recorda_output_path)
+    # epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda_input_path=recorda_input_path, recorda_output_path=recorda_output_path)
+    cProfile.run('epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda_input_path=recorda_input_path, recorda_output_path=recorda_output_path)', 'profile.tmp')
     # epsilon_greedy_strategy(d, package, int(args.step), args.episode)
 
     logger.info('----DONE----')
