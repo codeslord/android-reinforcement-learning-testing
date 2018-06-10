@@ -38,7 +38,9 @@ APP = {"any": {"current_package": "org.liberty.android.fantastischmemo",
        "bat": {"current_package": "net.sf.andbatdog.batterydog",
                "recorda_file": "bat_recorda.json"},
        "stuff": {"current_package": "de.freewarepoint.whohasmystuff",
-                 "recorda_file": "stuff_recorda_vm.json"}
+                 "recorda_file": "stuff_recorda_vm.json"},
+       "munch": {"current_package": "info.bpace.munchlife",
+                 "recorda_file": "munch_recorda.json"}
        }
 
 alpha = 1.
