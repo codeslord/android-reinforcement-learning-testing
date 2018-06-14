@@ -27,20 +27,13 @@ logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 
-APP = {"any": {"current_package": "org.liberty.android.fantastischmemo",
-               "recorda_file": "any_recorda.json"},
-       "wei": {"current_package": "es.senselesssolutions.gpl.weightchart",
-               "recorda_file": "wei_recorda.json"},
-       "note": {"current_package": "net.fercanet.LNM",
-               "recorda_file": "any_recorda.json"},
-       "clock": {"current_package": "com.irahul.worldclock",
-               "recorda_file": "clock_recorda.json"},
-       "bat": {"current_package": "net.sf.andbatdog.batterydog",
-               "recorda_file": "bat_recorda.json"},
-       "stuff": {"current_package": "de.freewarepoint.whohasmystuff",
-                 "recorda_file": "stuff_recorda_vm.json"},
-       "munch": {"current_package": "info.bpace.munchlife",
-                 "recorda_file": "munch_recorda.json"}
+APP = {"any": "org.liberty.android.fantastischmemo",
+       "wei": "es.senselesssolutions.gpl.weightchart",
+       "note": "net.fercanet.LNM",
+       "clock": "com.irahul.worldclock",
+       "bat": "net.sf.andbatdog.batterydog",
+       "stuff": "de.freewarepoint.whohasmystuff",
+       "munch": "info.bpace.munchlife",
        }
 
 alpha = 1.
@@ -190,7 +183,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('device', help='device name')
-    parser.add_argument('app', help='choose app name among : note, any, clock, wei')
+    parser.add_argument('package', help='package name')
     parser.add_argument('step', help='Length of an episode')
     parser.add_argument('episode', help='Number of episode', type=int)
     args = parser.parse_args()
@@ -204,17 +197,14 @@ if __name__ == "__main__":
         logger.error('Please choose an app and number of step and episode', args.device)
         sys.exit()
 
-    package = APP[args.app]['current_package']
+    # package = APP[args.app]
+    package = args.package
 
     output_path = "../output/{}/".format(package)
-    input_path = "../input/{}/".format(package)
+    input_path = "../input/"
 
-    if APP[args.app]['recorda_file'] != "":
-        recorda_output_path = "{}recorda/".format(output_path)
-        recorda_input_path = "{}recorda/{}".format(input_path, APP[args.app]['recorda_file'])
-    else:
-        recorda_output_path = None
-        recorda_input_path = None
+    recorda_output_path = "{}recorda/".format(output_path)
+    recorda_input_path = "{}recorda/{}.json".format(input_path, package)
 
     if not os.path.isdir(output_path):
         mkdir_p(output_path)

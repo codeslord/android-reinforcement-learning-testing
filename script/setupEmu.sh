@@ -1,17 +1,17 @@
 #!/bin/bash
 
-echo "- Killing All Emulators"
-killall emulator64-x86
-
-echo "- Deleting Emulator" $1
-android delete avd -n $1
-
-echo "- Copying emulator template"
-cp -r ./avd_templates/$1.* ~/.android/avd/
+#echo "- Killing All Emulators"
+#killall emulator64-x86
+#
+#echo "- Deleting Emulator" $1
+#android delete avd -n $1
+#
+#echo "- Copying emulator template"
+#cp -r ./avd_templates/$1.* ~/.android/avd/
 
 echo "- Starting emulator"
 
-cd $ANDROID_HOME/tools && ./emulator -avd $1 &
+emulator -avd $1 &
 
 date1=$(date +"%s")
 
