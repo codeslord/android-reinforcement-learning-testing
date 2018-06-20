@@ -1,13 +1,12 @@
 # Test environment
-import random
-from state import *
-import os
 import json
-from modelbuilder import ModelBuilder
 import logging
-import pprint
-import hashlib
-import datetime
+import os
+import random
+
+from src.env.recorda.modelbuilder import ModelBuilder
+from state import *
+
 pp = pprint.PrettyPrinter(indent=4)
 logging.basicConfig(filename='all.log', level=logging.DEBUG)
 logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s')
@@ -17,7 +16,6 @@ DEFAULT_REWARD = 0
 RECORDA_WEIGHT = 10
 
 class Agent(object):
-
     def __init__(self, alpha=1.0, gamma=0.9, recorda_path=None):
         self.states = {}  # state id : state
         self.actions = {}  # hash_action : [sim_action, action]

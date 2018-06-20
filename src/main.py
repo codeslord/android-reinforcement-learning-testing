@@ -1,26 +1,26 @@
 import argparse
+import cProfile
 import datetime
+import errno
+import json
 import logging
 import operator
 import os
+import pprint
 import random
 import sys
 import time
-import json
-import errno
-import cProfile
 from random import randint
 from subprocess import check_output
 
 from tqdm import tqdm  # show progress bar
 from uiautomator import Device
 
-from usagelogprocessor.dataprocessor import DataProcessor
-from executor.executor import Executor
-from observer.guiobserver import GuiObserver
 from qlearning.agent import Agent
+from src.env.executor import Executor
+from src.env.guiobserver import GuiObserver
+from src.env.recorda.dataprocessor import DataProcessor
 
-import pprint
 pp = pprint.PrettyPrinter(indent=4)
 logging.basicConfig(filename='all.log', level=logging.DEBUG)
 logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s')

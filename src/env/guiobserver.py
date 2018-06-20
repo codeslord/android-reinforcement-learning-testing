@@ -10,7 +10,7 @@ class GuiObserver:
 
     def __init__(self, device=Device('60e701c935a2')):
         """Initialize with android automator's device."""
-        self.activity = None
+        self.activity = ""
         self.actionable_events = None
         if type(device) is Device:
             self.device = device
@@ -67,10 +67,6 @@ class GuiObserver:
 
     def get_current_activity(self, current_package):
         """Get current activity of current package."""
-        # $adb shell dumpsys window windows | grep -E 'mCurrentFocus'
-        # mCurrentFocus=Window{a55fe368 u0 com.octtoplus.proj.recorda/
-        # com.octtoplus.proj.recorda.MainActivity}
-        # return MainActivity
         output = check_output(['adb', 'shell', 'dumpsys', 'window',
                                'windows', '|', 'grep', '-E',
                                "'mCurrentFocus'"])

@@ -1,11 +1,26 @@
 """The DataProcessor class."""
 from utils import write_activity_json_to_files
+from collections import Counter
 import os
+import json
+"""
+recorda action = (className, type, resource id, text)
+"""
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
+DEFAULT_RECORDA_INPUT_FORMAT = BASE_DIR + "/input/recorda/{}.json"
+DEFAULT_RECORDA_OUTPUT_FORMAT = BASE_DIR + "/output/recorda/{}"
+ACTION_MAPPING = {
+    "TYPE_VIEW_CLICKED": "click",
+    "TYPE_VIEW_SCROLLED": "scroll",
+}
 
 class DataProcessor:
     """Process the rawdata from Recorda."""
 
-    def __init__(self, output_path):
+    def __init__(self, package):
+        self.package = package
+        output_path = DEFAULT_RECORDA_OUTPUT_FORMAT.format(package)
         if not os.path.isdir(output_path):
             os.mkdir(output_path)
         self.output_path = output_path
@@ -152,15 +167,32 @@ class DataProcessor:
         return filter(lambda e: self.check_scroll_type(e) != 'invalid' or
                       e['eventType'] != 'TYPE_VIEW_SCROLLED', events)
 
-    def process_all_events(self, events):
+    def process_all_events(self):
         """Process events.
 
         Squash all scroll event then group by activity then save to file.
         """
-        squashed_events = self.squash_all_scroll_events(
-            self.remove_all_invalid_scroll_event(events))
-        grouped_events = self.groupByActivity(squashed_events)
-        write_activity_json_to_files(grouped_events, path=self.output_path)
+        recorda_input = DEFAULT_RECORDA_INPUT_FORMAT.format(self.package)
+        with open(recorda_input, 'r') as data_file:
+            events = json.load(data_file)
+            squashed_events = self.squash_all_scroll_events(
+                self.remove_all_invalid_scroll_event(events))
+            grouped_events = self.groupByActivity(squashed_events)
+            write_activity_json_to_files(grouped_events, path=self.output_path)
+
+    def get_recorda_reward(self):
+        transitions = []
+        for filename in os.listdir(self.output_path):
+            if filename.startswith(self.package):
+                activity_name = filename
+                with open(os.path.join(self.output_path, filename)) as file:
+                    recorda_raw_actions = json.load(file)
+                    for action in recorda_raw_actions:
+                        rid = action['resource-id'] if "resource-id" in action else ""
+                        parsed_action = (action['className'], ACTION_MAPPING[action['eventType']], rid, action['eventText'])
+                        transitions.append((activity_name, parsed_action))
+        reward = Counter(transition for transition in transitions)
+        return reward
 
 
 # sample json.

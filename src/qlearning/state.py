@@ -1,7 +1,8 @@
-from simplifier import Simplifier
-import operator
-import uuid
 import hashlib
+import operator
+
+from src.env.recorda.simplifier import Simplifier
+
 DEFAULT_Q = 0
 import pprint
 
@@ -59,36 +60,3 @@ def hash_all_gui_event(actionable_events):
             h_event = sim[0]
             hash_events[h_event] = [sim[1], sim[2]]
     return hash_events
-
-
-# def compare_action(self, gui_action, recorda_action):
-#     # gui_action from hierachy dump
-#     # recorda action from recorda output json file
-#     s = Simplifier()
-#     gui_action_sim = s.simplification_gui_event(gui_action).values()[0][0]
-#     return (gui_action_sim['eventType'] == recorda_action['eventType'] and gui_action_sim['eventText'] == recorda_action[
-#         'eventText'] and gui_action_sim['resource-id'] == 'noneId') or (
-#         gui_action_sim['resource-id'] != 'noneId' and 'resource-id' in recorda_action and gui_action_sim['resource-id'] == recorda_action['resource-id'])
-
-
-# def equal_actions(clickable_actions1, clickable_actions2):
-#     hash1 = hash_all_gui_event(clickable_actions1)
-#     hash2 = hash_all_gui_event(clickable_actions2)
-#     if len(hash1) != len(hash2):
-#         return False
-#     paired = zip(map(operator.itemgetter(0), hash1.values()), map(operator.itemgetter(0), hash2.values()))
-#     shared_items = [(x, y) for (x, y) in paired if x == y]
-#     if len(shared_items) != len(hash1):
-#         return False
-#     return True
-
-
-# def equal_hash_actions(hash1, hash2):
-#     if len(hash1) != len(hash2):
-#         return False
-#     # paired = zip(map(operator.itemgetter(0), hash1.values()), map(operator.itemgetter(0), hash2.values()))
-#     # shared_items = [(x, y) for (x, y) in paired if x == y]
-#     shared_items = set(hash1.keys()) & set(hash2.keys())
-#     if len(shared_items) != len(hash1):
-#         return False
-#     return True
