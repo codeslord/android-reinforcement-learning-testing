@@ -63,7 +63,22 @@ class GuiObserver:
         for e in all_actionable_events:
             dup_actionable_events += self.dup_event(e)
 
-        return dup_actionable_events
+        actions = []
+        for node in dup_actionable_events:
+            if node.attrib['clickable']=="true":
+                event_type = 'click'
+            elif node.attrib['long-clickable']=="true":
+                event_type = 'long-click'
+            elif node.attrib['scrollable']=="true":
+                event_type = 'scroll'
+            elif node.attrib['checkable']=="true":
+                event_type = 'check'
+            else:
+                event_type = None
+            if event_type:
+                actions.append((node.attrib['class'], event_type, node.attrib['resource-id'], node.attrib['text'], node.attrib['bounds']))
+
+        return actions
 
     def get_current_activity(self, current_package):
         """Get current activity of current package."""

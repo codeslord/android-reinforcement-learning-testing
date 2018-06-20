@@ -9,6 +9,8 @@ import logging
 logging.basicConfig(filename='all.log', level=logging.DEBUG)
 logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
+
+
 class Executor:
     """Execute the Events."""
 
@@ -38,25 +40,25 @@ class Executor:
 
     def perform_scroll(self, event):
         """Perform scroll from x1y1 to x2y2 randomly."""
-        bound_str = event.attrib['bounds']
+        bound_str = event[-1]
         x1, y1 = self.get_random_point_from_bound(bound_str)
         x2, y2 = self.get_random_point_from_bound(bound_str)
         self.device.drag(x1, y1, x2, y2, steps=1)
-        logger.info('scroll: '+ event.attrib['resource-id'] + ' from: ' + str(x1) + ' ' + str(y1) + 'to:'+ str(x2)+' ' + str(y2))
+        logger.info('scroll: ' + event[2] + ' from: ' + str(x1) + ' ' + str(y1) + 'to:'+ str(x2)+' ' + str(y2))
         return True
 
     def perform_click(self, event):
         """Perform click at x,y from eventbound."""
-        x, y = self.get_center_from_bound(event.attrib['bounds'])
+        x, y = self.get_center_from_bound(event[-1])
         self.device.click(x, y)
-        logger.info('click: '+ event.attrib['text'] + 'at' + str(x) +' ' + str(y))
+        logger.info('click: '+ event[3] + 'at' + str(x) +' ' + str(y))
         return True
 
     def perform_longclick(self, event):
         """Perform click at x,y from eventbound."""
-        x, y = self.get_center_from_bound(event.attrib['bounds'])
+        x, y = self.get_center_from_bound(event[-1])
         self.device.long_click(x, y)
-        logger.info('longclick: '+ event.attrib['text']+ ' at '+ str(x)+' ' + str(y))
+        logger.info('longclick: '+ event[3]+ ' at '+ str(x)+' ' + str(y))
         return True
 
     def perform_random_click(self, x, y):
@@ -108,49 +110,20 @@ class Executor:
                             '"'+text+'"'])
             subprocess.call(['adb', 'shell', 'input', 'keyevent', '111'])
 
-    # TODO: support multiple action.
-    def perform_action_with_hash(self, event, h_event):
-        """Perform an action base on event type."""
-        if h_event["eventType"] == 'TYPE_VIEW_CLICKED':
-            if 'Text' in event.attrib["class"]:
-                # print '------contain text-------'
-                return self.perform_click_and_text(event)
-            return self.perform_click(event)
-        elif h_event["eventType"] == 'TYPE_VIEW_SCROLLED':
-            return self.perform_scroll(event)
-        elif h_event["eventType"] == 'TYPE_VIEW_LONG_CLICKED':
-            return self.perform_longclick(event)
-        else:
-            print 'non clickable or scrollable action. >>>skip', event
-            return False
-
     def perform_action(self, event):
         """Perform an action base on event type."""
-        if event.attrib["clickable"] == 'true':
-            if 'Text' in event.attrib["class"]:
+        if event[1] == 'click':
+            if 'Text' in event.attrib[0]:
                 # print '------contain text-------'
                 return self.perform_click_and_text(event)
             return self.perform_click(event)
-        elif event.attrib["scrollable"] == 'true':
+        elif event[1] == 'scroll':
             return self.perform_scroll(event)
-        elif event.attrib["long-clickable"] == 'true':
+        elif event[1] == 'long-click':
             return self.perform_longclick(event)
         else:
             print 'non clickable or scrollable action. >>>skip', event
             return False
-
-    def perform_action_from_simplified_event(self, event):
-        """Perform action from simplified event."""
-        if event["eventType"] == 'TYPE_VIEW_CLICKED':
-            self.perform_click(event)
-        elif event["eventType"] == 'TYPE_VIEW_SCROLLED':
-            self.perform_scroll(event)
-        elif event["eventType"] == 'TYPE_VIEW_LONG_CLICKED':
-            self.perform_longclick(event)
-        elif event["eventType"] == 'back':
-            self.perform_back()
-        else:
-            print 'non clickable or scrollable action. >>>skip', event
 
     def perform_back(self):
         """Press back button on device."""

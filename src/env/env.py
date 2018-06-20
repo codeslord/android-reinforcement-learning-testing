@@ -48,10 +48,14 @@ class Environment(object):
 
     def get_reward(self):
         if self.next_state and self.current_state:
-            # TODO
-            return 1
+            current_actions = self.current_state[1]
+            next_actions = self.next_state[1]
+            shared_items = set(current_actions) & set(next_actions)
+            reward = (len(next_actions) - len(shared_items))/float(len(next_actions))
         else:
-            return 0
+            reward = 0
+        # TODO return reward from recorda
+        return reward
 
     def get_random_state(self):
         return random.choice(self.visited_states)
