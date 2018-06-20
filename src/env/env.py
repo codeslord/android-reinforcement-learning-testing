@@ -1,21 +1,33 @@
-import time
 import random
-from guiobserver import GuiObserver
+import time
+import logging
+import subprocess
 from executor import Executor
-from recorda.dataprocessor import DataProcessor
+from guiobserver import GuiObserver
+from dataprocessor import DataProcessor
+from sets import Set
+
 
 """
 State is a tuple (activity_name, tuple of actions)
 action is a tuple (resource_id, event_type, bounds, text or "")
 """
 
+#TOD handle out of app
+
+DEFAULT_REWARD = 0
+RECORDA_WEIGHT = 10
+
+logging.basicConfig(filename='all.log', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s')
+logger = logging.getLogger(__name__)
 
 class Environment(object):
     device = None
     package = None
     current_state = None
     next_state = None
-    visited_states = []
+    visited_states = None
     recorda_reward = {}
     observer = None
     executor = None
@@ -25,6 +37,7 @@ class Environment(object):
         self.observer = GuiObserver(device)
         self.executor = Executor(device)
         self.package = package
+        self.visited_states = Set()
         if recorda:
             dp = DataProcessor(package)
             dp.process_all_events()
@@ -32,19 +45,29 @@ class Environment(object):
 
     def observe_current_state(self):
         self.observer.dump_gui(self.package)
-        state = (self.observer.activity, str(self.observer.actionable_events))
+        state = (self.observer.activity, self.observer.actionable_events)
         return state
 
-    def observe_next_state(self, action):
+    def transition_to_next_state(self, action):
         self.executor.perform_action(action)
         time.sleep(0.2)
         next_state = self.observe_current_state()
+        if self.is_out_of_app(next_state[0]):
+            self.back_to_app()
+            self.next_state = None
+            self.current_state = self.observe_current_state()
+            return None
+        self.next_state = next_state
         return next_state
+
+    def set_current_state(self):
+        self.current_state = self.observe_current_state()
 
     def finish_transition(self):
         self.current_state = self.next_state
         self.next_state = None
-        self.visited_states.append(self.next_state)
+        self.visited_states.add(self.next_state)
+        print(len(self.visited_states))
 
     def get_reward(self):
         if self.next_state and self.current_state:
@@ -58,4 +81,21 @@ class Environment(object):
         return reward
 
     def get_random_state(self):
+        print(self.visited_states)
         return random.choice(self.visited_states)
+
+    def is_out_of_app(self, activity):
+        """Check is out of app."""
+        if self.package in activity:
+            return False
+        else:
+            return True
+
+    def back_to_app(self):
+        """Go back."""
+        logger.info('backtoapp')
+        subprocess.call(['adb', 'shell', 'monkey', '-p', self.package, '-c', 'android.intent.category.LAUNCHER', '1'])
+
+    def jump_to_activity(self, activity):
+        output = subprocess.check_output(['adb', 'shell', 'am', 'start', '-n', '{}/{}'.format(self.package, activity)])
+        return output

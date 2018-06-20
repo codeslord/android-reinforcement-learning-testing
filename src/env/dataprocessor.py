@@ -1,13 +1,14 @@
-"""The DataProcessor class."""
+"""The DataProcessor class for RECORDA."""
 from utils import write_activity_json_to_files
 from collections import Counter
 import os
 import json
+
 """
 recorda action = (className, type, resource id, text)
 """
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 DEFAULT_RECORDA_INPUT_FORMAT = BASE_DIR + "/input/recorda/{}.json"
 DEFAULT_RECORDA_OUTPUT_FORMAT = BASE_DIR + "/output/recorda/{}"
 ACTION_MAPPING = {
@@ -15,12 +16,23 @@ ACTION_MAPPING = {
     "TYPE_VIEW_SCROLLED": "scroll",
 }
 
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+
 class DataProcessor:
     """Process the rawdata from Recorda."""
 
     def __init__(self, package):
         self.package = package
         output_path = DEFAULT_RECORDA_OUTPUT_FORMAT.format(package)
+        if not os.path.isdir(output_path):
+            mkdir_p(output_path)
         if not os.path.isdir(output_path):
             os.mkdir(output_path)
         self.output_path = output_path

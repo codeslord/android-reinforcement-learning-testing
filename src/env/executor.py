@@ -58,7 +58,7 @@ class Executor:
         """Perform click at x,y from eventbound."""
         x, y = self.get_center_from_bound(event[-1])
         self.device.long_click(x, y)
-        logger.info('longclick: '+ event[3]+ ' at '+ str(x)+' ' + str(y))
+        logger.info('longclick: '+ event[3] + ' at '+ str(x)+' ' + str(y))
         return True
 
     def perform_random_click(self, x, y):
@@ -113,7 +113,7 @@ class Executor:
     def perform_action(self, event):
         """Perform an action base on event type."""
         if event[1] == 'click':
-            if 'Text' in event.attrib[0]:
+            if 'Text' in event[0]:
                 # print '------contain text-------'
                 return self.perform_click_and_text(event)
             return self.perform_click(event)
@@ -122,7 +122,6 @@ class Executor:
         elif event[1] == 'long-click':
             return self.perform_longclick(event)
         else:
-            print 'non clickable or scrollable action. >>>skip', event
             return False
 
     def perform_back(self):

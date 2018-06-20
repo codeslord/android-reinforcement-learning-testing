@@ -78,14 +78,14 @@ class GuiObserver:
             if event_type:
                 actions.append((node.attrib['class'], event_type, node.attrib['resource-id'], node.attrib['text'], node.attrib['bounds']))
 
-        return actions
+        return tuple(actions)
 
-    def get_current_activity(self, current_package):
+    def get_current_activity(self):
         """Get current activity of current package."""
         output = check_output(['adb', 'shell', 'dumpsys', 'window',
                                'windows', '|', 'grep', '-E',
                                "'mCurrentFocus'"])
-        cur_activity = output.split('/')[-1].replace(current_package+'.', '').split('}')[0]
+        cur_activity = output.split('/')[-1].split('}')[0]
         return cur_activity
 
     def passing_actionable_to_children(self, root, clickable, scrollable, longclickable):
@@ -134,7 +134,7 @@ class GuiObserver:
         dd = self.device.dump().encode('utf-8')
         tree = ET.ElementTree(ET.fromstring(dd))
         self.passing_actionable_to_children(tree.getroot(), False, False, False)
-        self.activity = self.get_current_activity(package)
+        self.activity = self.get_current_activity()
         self.actionable_events = self.get_all_actionable_events(tree)
 
     def reset(self):

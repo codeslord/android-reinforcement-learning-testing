@@ -2,7 +2,6 @@ import argparse
 import cProfile
 import datetime
 import errno
-import json
 import logging
 import operator
 import os
@@ -10,16 +9,13 @@ import pprint
 import random
 import sys
 import time
-from random import randint
 from subprocess import check_output
 
 from tqdm import tqdm  # show progress bar
 from uiautomator import Device
 
+from env.env import Environment
 from qlearning.agent import Agent
-from src.env.executor import Executor
-from src.env.guiobserver import GuiObserver
-from src.env.recorda.dataprocessor import DataProcessor
 
 pp = pprint.PrettyPrinter(indent=4)
 logging.basicConfig(filename='all.log', level=logging.DEBUG)
@@ -49,120 +45,39 @@ def mkdir_p(path):
         else:
             raise
 
-def is_out_of_app(activity):
-    """Check is out of app."""
-    if ('com.google.android' in activity) or ('com.android' in activity) or 'mCurrentFocus=null' in activity:
-        return True
-    else:
-        return False
+def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_default, recorda=False):
+    env = Environment(device, package, recorda)
+    agent = Agent(alpha, gamma, epsilon)
 
-
-def is_launcher(activity):
-    """Check is out of app."""
-    # print 'activity: ', activity
-    if activity == 'com.android.launcher2.Launcher' or activity == "com.jiubang.golauncher.GOLauncher" or activity == 'com.android.launcher3.Launcher':
-        return True
-    else:
-        return False
-
-
-def back_to_app():
-    """Go back."""
-    logger.info('backtoapp')
-    check_output(['adb', 'shell', 'am', 'instrument',
-                 '-e', 'coverage', 'true',
-                  '{}/{}.EmmaInstrument.EmmaInstrumentation'.format(package, package)])
-
-
-def jump_to_activity(activity):
-    output = check_output(['adb', 'shell', 'am', 'start', '-n', '{}/.{}'.format(package, activity)])
-    print (output)
-    return output
-
-
-def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_default, recorda_input_path=None, recorda_output_path=None):
-    start_time = datetime.datetime.now()
-    if recorda_input_path and recorda_output_path:
-        dp = DataProcessor(recorda_output_path)
-        with open(recorda_input_path, 'r') as data_file:
-            events = json.load(data_file)
-        dp.process_all_events(events)
-        agent = Agent(alpha, gamma, recorda_path=recorda_output_path)
-    else:
-        agent = Agent(alpha, gamma)
-    observer = GuiObserver(device)
-    executor = Executor(device)
     for j in tqdm(range(episode)):
         logger.info("------------Episode {}---------------".format(j))
         for i in tqdm(range(step)):
-            # start = datetime.datetime.now()
-            if not (observer.activity and observer.actionable_events):
-                observer.dump_gui(package)
+            if not env.current_state:
+                env.set_current_state()
+            action = agent.select_next_action(env.current_state)
+            if env.transition_to_next_state(action):
+                # If next state is in the app
+                reward = env.get_reward()
+                agent.update_q(env.current_state, action, reward, env.next_state)
+                env.finish_transition()
+            else:
+                # if next state is out of app
+                pass
 
-            # if is_launcher(observer.activity) or 'Application Error' in observer.activity:
-            #     back_to_app()
-            #     observer.reset()
-            #     continue
-            # elif is_out_of_app(observer.activity):
-            #     executor.perform_back()
-            #     continue
-            # else:
-            if agent.next_state:
-                agent.current_state = agent.next_state
-            else:
-                print("No next state")
-                agent.set_current_state(observer.activity, observer.actionable_events)
-            # print("Step 1: {}".format(datetime.datetime.now() - start))
-
-            if len(agent.get_available_action()) > 0:
-                r = random.uniform(0.0, 1.0)
-                if r < epsilon:
-                    agent.current_action = random.choice(agent.get_available_action().keys())
-                    logger.info('Select randomly')
-                else:
-                    max_q_key = max(agent.current_state.q_value.iteritems(), key=operator.itemgetter(1))[0]
-                    if agent.current_state.q_value[max_q_key] != 0:
-                        hash_action = max_q_key.split("||")[1]
-                        agent.current_action = hash_action
-                    logger.info("Select action with highest q value = {}".format(agent.current_state.q_value[max_q_key]))
-            # print("Step 2: {}".format(datetime.datetime.now() - start))
-            if not agent.current_action or agent.current_action == 'None':
-                x = randint(0, 540)
-                y = randint(0, 540)
-                executor.perform_random_click(x, y)
-            else:
-                executor.perform_action(agent.actions[agent.current_action][1])
-            # print("Step 3: {}".format(datetime.datetime.now() - start))
-            time.sleep(0.2)
-            observer.dump_gui(package)
-            # print("Step 4: {}".format(datetime.datetime.now() - start))
-            if not (is_launcher(observer.activity) or is_out_of_app(observer.activity) or 'Application Error' in observer.activity):
-                agent.set_next_state(observer.activity, observer.actionable_events)
-                agent.add_reward(agent.current_state, agent.next_state)
-                agent.add_reward_unvisited_action()
-                agent.update_q()
-            else:
-                back_to_app()
-                observer.reset()
-                continue
-            agent.reset()
-            # print("Step 5: {}".format(datetime.datetime.now() - start))
         """ 
         End of and episode, start from a random state from the list of states that have been explored
         """
-        for i in range(len(agent.states)):
-            random_state = agent.get_random_state()
-            output = jump_to_activity(random_state.activity)
-            if 'Error' not in output:
-                break
+        random_state = env.get_random_state()
+        print("end of ep")
+        print(random_state)
+        env.jump_to_activity(random_state[0])
+
     """ LOGGING """
     logger.info("#############STATE###########")
-    for s in agent.states.values():
+    for s in env.visited_states:
         logger.info(str(s))
     logger.info("#############Q value##########")
     logger.info(agent.q_value)
-
-    logger.info("End of process. Time: {}".format(datetime.datetime.now() - start_time))
 
 
 def is_device_available(device_num):
@@ -192,27 +107,10 @@ if __name__ == "__main__":
         sys.exit()
 
     d = Device(args.device)
-
-    if args.app not in APP:
-        logger.error('Please choose an app and number of step and episode', args.device)
-        sys.exit()
-
-    # package = APP[args.app]
     package = args.package
 
-    output_path = "../output/{}/".format(package)
-    input_path = "../input/"
-
-    recorda_output_path = "{}recorda/".format(output_path)
-    recorda_input_path = "{}recorda/{}.json".format(input_path, package)
-
-    if not os.path.isdir(output_path):
-        mkdir_p(output_path)
-    if not os.path.isdir(input_path):
-        mkdir_p(input_path)
-
-    # epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda_input_path=recorda_input_path, recorda_output_path=recorda_output_path)
-    cProfile.run('epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda_input_path=recorda_input_path, recorda_output_path=recorda_output_path)', 'profile.tmp')
+    epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda=True)
+    # cProfile.run('epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda_input_path=recorda_input_path, recorda_output_path=recorda_output_path)', 'profile.tmp')
     # epsilon_greedy_strategy(d, package, int(args.step), args.episode)
 
     logger.info('----DONE----')
