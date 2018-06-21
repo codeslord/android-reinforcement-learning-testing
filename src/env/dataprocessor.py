@@ -1,20 +1,30 @@
 """The DataProcessor class for RECORDA."""
-from utils import write_activity_json_to_files
 from collections import Counter
 import os
 import json
-
+import io
+import errno
+import shutil
 """
 recorda action = (className, type, resource id, text)
 """
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 DEFAULT_RECORDA_INPUT_FORMAT = BASE_DIR + "/input/recorda/{}.json"
-DEFAULT_RECORDA_OUTPUT_FORMAT = BASE_DIR + "/output/recorda/{}"
+DEFAULT_RECORDA_OUTPUT_FORMAT = BASE_DIR + "/output/recorda/{}/"
 ACTION_MAPPING = {
     "TYPE_VIEW_CLICKED": "click",
     "TYPE_VIEW_SCROLLED": "scroll",
 }
+
+
+def write_activity_json_to_files(grouped_events_dict, path):
+    """Write the events to files regarding the activities."""
+    for key in grouped_events_dict:
+        filename = path + key + ".json"
+        with io.FileIO(filename, "w") as file:
+            json.dump(grouped_events_dict[key], file)
+
 
 def mkdir_p(path):
     try:
@@ -25,16 +35,17 @@ def mkdir_p(path):
         else:
             raise
 
+
 class DataProcessor:
     """Process the rawdata from Recorda."""
 
     def __init__(self, package):
         self.package = package
         output_path = DEFAULT_RECORDA_OUTPUT_FORMAT.format(package)
+        # Clear output folder
+        # shutil.rmtree(output_path)
         if not os.path.isdir(output_path):
             mkdir_p(output_path)
-        if not os.path.isdir(output_path):
-            os.mkdir(output_path)
         self.output_path = output_path
 
     def groupByActivity(self, events):
@@ -196,15 +207,24 @@ class DataProcessor:
         transitions = []
         for filename in os.listdir(self.output_path):
             if filename.startswith(self.package):
-                activity_name = filename
                 with open(os.path.join(self.output_path, filename)) as file:
                     recorda_raw_actions = json.load(file)
                     for action in recorda_raw_actions:
-                        rid = action['resource-id'] if "resource-id" in action else ""
-                        parsed_action = (action['className'], ACTION_MAPPING[action['eventType']], rid, action['eventText'])
-                        transitions.append((activity_name, parsed_action))
-        reward = Counter(transition for transition in transitions)
+                        if action['eventType'] in ACTION_MAPPING:
+                            rid = action['resource-id'] if "resource-id" in action else ""
+                            parsed_action = (action['className'], ACTION_MAPPING[action['eventType']], rid, action['eventText'])
+                            transitions.append((filename[:-5], parsed_action))
+        reward = dict(Counter(transition for transition in transitions))
         return reward
+
+
+# d = DataProcessor("org.liberty.android.fantastischmemo")
+# d.process_all_events()
+# reward = d.get_recorda_reward()
+# for item in reward:
+#     print("{} --- {}".format(str(item), reward[item]))
+
+
 
 
 # sample json.

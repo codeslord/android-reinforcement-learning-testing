@@ -46,7 +46,7 @@ for p in `cat $DIR/one.txt`; do
     cd $TOOLDIR
     source activate android
     cd $TOOLDIR/src
-    python main.py emulator-5554 $package $STEP $EP
+    python main.py --recorda emulator-5554 $package $STEP $EP
 
 
     echo "-- FINISHED RUNNING MY TOOL"

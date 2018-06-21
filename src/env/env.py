@@ -68,15 +68,27 @@ class Environment(object):
         self.current_state = self.next_state
         self.next_state = None
 
-    def get_reward(self):
+    def get_recorda_reward(self, action):
+        reward = 0
+        if action and action in self.recorda_reward:
+            simplified_action = action[:-1]
+            print(simplified_action)
+            key = (self.current_state[0], simplified_action)
+            if key in self.recorda_reward:
+                reward = 1/float(self.recorda_reward[key])
+        return reward
+
+    def get_gui_change_reward(self):
+        reward = 0
         if self.next_state and self.current_state:
             current_actions = self.current_state[1]
             next_actions = self.next_state[1]
             shared_items = set(current_actions) & set(next_actions)
             reward = (len(next_actions) - len(shared_items))/float(len(next_actions))
-        else:
-            reward = 0
-        # TODO return reward from recorda
+        return reward
+
+    def get_reward(self, action):
+        reward = self.get_gui_change_reward() + self.get_recorda_reward(action)
         return reward
 
     def get_random_state(self):
