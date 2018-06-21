@@ -11,7 +11,7 @@
 
 echo "- Starting emulator"
 
-emulator -avd $1 &
+~/Library/Android/sdk/emulator/emulator -avd $1 -wipe-data &
 
 date1=$(date +"%s")
 
