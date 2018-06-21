@@ -15,7 +15,7 @@ DEFAULT_Q = 0
 
 
 class Agent(object):
-    def __init__(self, alpha=1.0, gamma=0.9, epsilon=0.8, recorda_path=None):
+    def __init__(self, alpha=1.0, gamma=0.9, epsilon=0.8):
         self.q_value = {}  # {state:{action:value}}
         self.alpha = alpha #TODO change the formular to take into account alpha
         self.gamma = gamma
@@ -31,7 +31,7 @@ class Agent(object):
             self.add_state(current_state)
 
         r = random.uniform(0.0, 1.0)
-        if r < self.epsilon:
+        if r < self.epsilon and current_state[1]:
             action = random.choice(current_state[1])
             logger.info('Select randomly')
             return action

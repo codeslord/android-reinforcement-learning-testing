@@ -5,7 +5,6 @@ import subprocess
 from executor import Executor
 from guiobserver import GuiObserver
 from dataprocessor import DataProcessor
-from sets import Set
 
 
 """
@@ -37,7 +36,7 @@ class Environment(object):
         self.observer = GuiObserver(device)
         self.executor = Executor(device)
         self.package = package
-        self.visited_states = Set()
+        self.visited_states = set()
         if recorda:
             dp = DataProcessor(package)
             dp.process_all_events()
@@ -64,10 +63,10 @@ class Environment(object):
         self.current_state = self.observe_current_state()
 
     def finish_transition(self):
+        self.visited_states.add(self.next_state)
+        logger.info("Number of visited states: " + str(len(self.visited_states)))
         self.current_state = self.next_state
         self.next_state = None
-        self.visited_states.add(self.next_state)
-        print(len(self.visited_states))
 
     def get_reward(self):
         if self.next_state and self.current_state:
@@ -81,8 +80,7 @@ class Environment(object):
         return reward
 
     def get_random_state(self):
-        print(self.visited_states)
-        return random.choice(self.visited_states)
+        return random.sample(self.visited_states, 1)[0]
 
     def is_out_of_app(self, activity):
         """Check is out of app."""

@@ -60,16 +60,11 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
                 reward = env.get_reward()
                 agent.update_q(env.current_state, action, reward, env.next_state)
                 env.finish_transition()
-            else:
-                # if next state is out of app
-                pass
 
         """ 
         End of and episode, start from a random state from the list of states that have been explored
         """
         random_state = env.get_random_state()
-        print("end of ep")
-        print(random_state)
         env.jump_to_activity(random_state[0])
 
     """ LOGGING """
@@ -108,6 +103,10 @@ if __name__ == "__main__":
 
     d = Device(args.device)
     package = args.package
+
+    # clear log
+    with open('all.log', 'w'):
+        pass
 
     epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda=True)
     # cProfile.run('epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda_input_path=recorda_input_path, recorda_output_path=recorda_output_path)', 'profile.tmp')

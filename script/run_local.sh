@@ -3,7 +3,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 APPDIR=~/Subjects/
 TOOLDIR=/Users/vuong/vagrant/androtest/android-reinforcement-learning-testing
-RESULTDIR=$TOOLDIR/output/
+RESULTDIR=/Users/vuong/vagrant/androtest/mytooloutput/
 
 
 STEP=25
@@ -13,8 +13,9 @@ EP=200
 
 cd $APPDIR
 
-for p in `ls -d */`; do
+#for p in `ls -d */`; do
 #for p in `cat $DIR/projects2.txt`; do
+for p in `cat $DIR/one.txt`; do
 
     echo "Setting up AVD"
     cd $DIR

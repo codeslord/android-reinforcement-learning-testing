@@ -12,7 +12,7 @@ i=0
 while true
 do
   i=$((i+1))
-  sleep 60 #sleep for 5 minutes
+  sleep 300 #sleep for 5 minutes
   adb shell am broadcast -a edu.gatech.m3.emma.COLLECT_COVERAGE
   adb pull /mnt/sdcard/coverage.ec $1/coverage$i.ec
   mkdir -p $1/coverage$i #output directory
