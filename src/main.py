@@ -94,7 +94,7 @@ if __name__ == "__main__":
     with open('all.log', 'w'):
         pass
 
-    # epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda=recorda)
+    epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda=recorda)
     # cProfile.run('epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda_input_path=recorda_input_path, recorda_output_path=recorda_output_path)', 'profile.tmp')
 
     logger.info('----DONE----')

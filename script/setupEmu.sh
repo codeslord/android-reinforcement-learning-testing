@@ -1,8 +1,10 @@
 #!/bin/bash
 
-#echo "- Killing All Emulators"
+echo "- Killing All Emulators"
 #killall emulator64-x86
-#
+adb -s emulator-5554 emu kill
+pkill -f emulator
+
 #echo "- Deleting Emulator" $1
 #android delete avd -n $1
 #

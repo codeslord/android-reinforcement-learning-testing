@@ -2,8 +2,8 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 APPDIR=~/Subjects/
-TOOLDIR=/Users/vuong/vagrant/androtest/android-reinforcement-learning-testing
-RESULTDIR=/Users/vuong/vagrant/androtest/mytooloutput/
+TOOLDIR=~/vagrant/androtest/android-reinforcement-learning-testing
+RESULTDIR=~/vagrant/androtest/mytooloutput/
 
 
 STEP=25
@@ -19,7 +19,7 @@ for p in `cat $DIR/one.txt`; do
 
     echo "Setting up AVD"
     cd $DIR
-    ./setupEmu.sh android-19
+    ./setupEmu.sh android-23
 
     echo "@@@@@@ Processing project " $p "@@@@@@@"
     mkdir -p $RESULTDIR$p
@@ -32,7 +32,7 @@ for p in `cat $DIR/one.txt`; do
     app=`ls bin/*-debug.apk`
     adb install bin/*-debug.apk
     echo "** PROCESSING APP " $app
-    package=`~/Library/Android/sdk/build-tools/27.0.3/aapt d xmltree $app AndroidManifest.xml | grep package | awk 'BEGIN {FS="\""}{print $2}'`
+    package=`~/Library/Android/sdk/build-tools/25.0.3/aapt d xmltree $app AndroidManifest.xml | grep package | awk 'BEGIN {FS="\""}{print $2}'`
     echo $package
 
     echo "** RUNNING LOGCAT"
@@ -46,7 +46,7 @@ for p in `cat $DIR/one.txt`; do
     cd $TOOLDIR
     source activate android
     cd $TOOLDIR/src
-    python main.py --recorda emulator-5554 $package $STEP $EP
+    python main.py emulator-5554 $package $STEP $EP
 
 
     echo "-- FINISHED RUNNING MY TOOL"
@@ -58,5 +58,10 @@ for p in `cat $DIR/one.txt`; do
 
     killall dumpCoverage.sh
     killall adb
+    pkill -f dumpCoverage.sh
+    pkill -f adb
+    pkill -f sleep
+
+    sleep 5
 
 done
