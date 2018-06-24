@@ -68,7 +68,7 @@ for p in `cat $DIR/projects2.txt`; do
 
     mv $TOOLDIR/src/all.log $RESULTDIR$p/
 
-    sleep 5
+    sleep 10
 
 
 done

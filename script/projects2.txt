@@ -1,11 +1,9 @@
-baterrydog
-tippy_1.1.3/
-weight-chart/
-passwordmanager
 com.everysoft.autoanswer_6_src
 com.hectorone.multismssender_13_src
 com.kvance.Nectroid_11_src
 com.zoffcc.applications.aagtl_31_src
+baterrydog
+tippy_1.1.3/
 dialer2
 DivideAndConquer
 hotdeath
@@ -33,4 +31,8 @@ Wordpress_394/
 aLogCat
 whohasmystuff-1.0.7/
 anymemo-stable-8.3/
+weight-chart/
+passwordmanager
+
+
 
