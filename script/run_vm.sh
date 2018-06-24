@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPTDIR=/home/vagrant/scripts/
 APPDIR=/home/vagrant/subjects/
 RESULTDIR=/vagrant/results/`hostname`/mytool/
 
-TOOLDIR=/home/vagrant/tools/android-reinforcement-learning-testing
+TOOLDIR=/vagrant/android-reinforcement-learning-testing
 
 STEP=25
-EP=2000
+EP=200
 
-source $DIR/env.sh
+source $SCRIPTDIR/env.sh
 
 cd $APPDIR
 
@@ -17,7 +18,7 @@ cd $APPDIR
 for p in `cat $DIR/projects2.txt`; do
 
     echo "Setting up AVD"
-    cd $DIR
+    cd $SCRIPTDIR
     ./setupEmu.sh android-19
 
     echo "@@@@@@ Processing project " $p "@@@@@@@"
@@ -40,8 +41,8 @@ for p in `cat $DIR/projects2.txt`; do
     ./dumpCoverage.sh $RESULTDIR$p &> $RESULTDIR$p/icoverage.log &
 
     echo "** RUNNING MY TOOL FOR" $package
-    cd $TOOLDIR
-    . ./venv/bin/activate
+    #cd $TOOLDIR
+    # . ./venv/bin/activate
     cd $TOOLDIR/src
     timeout 1h python main.py emulator-5554 $package $STEP $EP
 

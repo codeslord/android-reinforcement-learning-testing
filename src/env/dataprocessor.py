@@ -196,12 +196,13 @@ class DataProcessor:
         Squash all scroll event then group by activity then save to file.
         """
         recorda_input = DEFAULT_RECORDA_INPUT_FORMAT.format(self.package)
-        with open(recorda_input, 'r') as data_file:
-            events = json.load(data_file)
-            squashed_events = self.squash_all_scroll_events(
-                self.remove_all_invalid_scroll_event(events))
-            grouped_events = self.groupByActivity(squashed_events)
-            write_activity_json_to_files(grouped_events, path=self.output_path)
+        if os.path.isfile(recorda_input):
+            with open(recorda_input, 'r') as data_file:
+                events = json.load(data_file)
+                squashed_events = self.squash_all_scroll_events(
+                    self.remove_all_invalid_scroll_event(events))
+                grouped_events = self.groupByActivity(squashed_events)
+                write_activity_json_to_files(grouped_events, path=self.output_path)
 
     def get_recorda_reward(self):
         transitions = []

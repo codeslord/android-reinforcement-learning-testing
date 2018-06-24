@@ -8,10 +8,12 @@ import copy
 class GuiObserver:
     """Gui guiobserver.py."""
 
-    def __init__(self, device=Device('60e701c935a2')):
+    def __init__(self, package, device=Device('emulator-5554')):
         """Initialize with android automator's device."""
+        self.package = package
         self.activity = ""
         self.actionable_events = None
+        self.app_actions = None
         if type(device) is Device:
             self.device = device
         else:
@@ -63,7 +65,8 @@ class GuiObserver:
         for e in all_actionable_events:
             dup_actionable_events += self.dup_event(e)
 
-        actions = []
+        all_actions = []
+        app_actions = []
         for node in dup_actionable_events:
             if node.attrib['clickable']=="true":
                 event_type = 'click'
@@ -76,9 +79,12 @@ class GuiObserver:
             else:
                 event_type = None
             if event_type:
-                actions.append((node.attrib['class'], event_type, node.attrib['resource-id'], node.attrib['text'], node.attrib['bounds']))
+                all_actions.append((node.attrib['class'], event_type, node.attrib['resource-id'], node.attrib['text'], node.attrib['bounds']))
+                if node.attrib["package"] == self.package or node.attrib["resource-id"] == "com.android.systemui:id/back" or node.attrib["resource-id"] == "com.android.systemui:id/menu":
+                    app_actions.append((node.attrib['class'], event_type, node.attrib['resource-id'],
+                                        node.attrib['text'], node.attrib['bounds']))
 
-        return tuple(actions)
+        return tuple(all_actions), tuple(app_actions)
 
     def get_current_activity(self):
         """Get current activity of current package."""
@@ -126,7 +132,7 @@ class GuiObserver:
         else:
             return False
 
-    def dump_gui(self, package):
+    def dump_gui(self):
         """
         Dump gui hierarchy from device.
         Get activity and actionable events
@@ -135,7 +141,7 @@ class GuiObserver:
         tree = ET.ElementTree(ET.fromstring(dd))
         self.passing_actionable_to_children(tree.getroot(), False, False, False)
         self.activity = self.get_current_activity()
-        self.actionable_events = self.get_all_actionable_events(tree)
+        self.actionable_events, self.app_actions = self.get_all_actionable_events(tree)
 
     def reset(self):
         self.activity = None

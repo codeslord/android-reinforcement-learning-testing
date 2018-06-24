@@ -45,12 +45,15 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
                 reward = env.get_reward(action)
                 agent.update_q(env.current_state, action, reward, env.next_state)
                 env.finish_transition()
+            else:
+                agent.update_q(env.current_state, action, 0, None)
 
         """ 
         End of and episode, start from a random state from the list of states that have been explored
         """
-        random_state = env.get_random_state()
-        env.jump_to_activity(random_state[0])
+        # random_state = env.get_random_state()
+        # env.jump_to_activity(random_state[0])
+        env.back_to_app()
 
     """ LOGGING """
     logger.info("#############STATE###########")
@@ -71,10 +74,6 @@ def is_device_available(device_num):
 
 if __name__ == "__main__":
     """Main program."""
-    # d = Device('08ee2d08')  # nexus tablet
-    # device_number_str = 'emulator-5554'  # nexus api19
-    # device_number_str = 'emulator-5554'
-    # device_number_str = 'BH904F6J5P'  # xperia
 
     parser = argparse.ArgumentParser()
     parser.add_argument('device', help='device name')
@@ -94,6 +93,7 @@ if __name__ == "__main__":
     with open('all.log', 'w'):
         pass
 
+    print("USE RECORDA {}".format(recorda))
     epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda=recorda)
     # cProfile.run('epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda_input_path=recorda_input_path, recorda_output_path=recorda_output_path)', 'profile.tmp')
 

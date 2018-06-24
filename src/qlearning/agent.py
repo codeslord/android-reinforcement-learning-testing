@@ -29,16 +29,19 @@ class Agent(object):
     def select_next_action(self, current_state):
         if current_state not in self.q_value:
             self.add_state(current_state)
-
         r = random.uniform(0.0, 1.0)
-        if r < self.epsilon and current_state[1]:
-            action = random.choice(current_state[1])
-            logger.info('Select randomly')
-            return action
+        if not current_state[1]:
+            logger.info('No action available to select!')
+            return None
         else:
-            max_q_action = max(self.q_value.iteritems(), key=operator.itemgetter(1))[0]
-            logger.info("Select action with highest q value")
-            return max_q_action
+            if r < self.epsilon:
+                action = random.choice(current_state[1])
+                logger.info('Select randomly')
+                return action
+            else:
+                max_q_action = max(self.q_value.iteritems(), key=operator.itemgetter(1))[0]
+                logger.info("Select action with highest q value")
+                return max_q_action
 
     def update_q(self, current_state, action, reward, next_state):
         if current_state in self.q_value and action in self.q_value[current_state]:
@@ -46,7 +49,7 @@ class Agent(object):
                 value = reward + self.gamma * max(list(self.q_value[next_state].values()))
             else:
                 value = reward
-            logger.info("{} - > {}: {} -> {}. Reward {}".format(current_state[0], next_state[0], self.q_value[current_state][action], value, reward))
+            logger.info("{} - > {}: {} -> {}. Reward {}".format(current_state[0], next_state[0] if next_state else "Out of app", self.q_value[current_state][action], value, reward))
             self.q_value[current_state][action] = value
         else:
             self.add_state(current_state)

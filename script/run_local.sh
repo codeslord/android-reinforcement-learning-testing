@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-APPDIR=~/Subjects/
+APPDIR=~/subjects/
 TOOLDIR=~/vagrant/androtest/android-reinforcement-learning-testing
-RESULTDIR=~/vagrant/androtest/mytooloutput/
+RESULTDIR=~/mytooloutput/
 
 
 STEP=25
-EP=200
+EP=100
 
 #source $DIR/env.sh
 
 cd $APPDIR
 
 #for p in `ls -d */`; do
-#for p in `cat $DIR/projects2.txt`; do
-for p in `cat $DIR/one.txt`; do
+for p in `cat $DIR/projects2.txt`; do
+#for p in `cat $DIR/one.txt`; do
 
     echo "Setting up AVD"
     cd $DIR
-    ./setupEmu.sh android-23
+    ./setupEmu.sh android-23-2
 
     echo "@@@@@@ Processing project " $p "@@@@@@@"
     mkdir -p $RESULTDIR$p
@@ -32,11 +32,11 @@ for p in `cat $DIR/one.txt`; do
     app=`ls bin/*-debug.apk`
     adb install bin/*-debug.apk
     echo "** PROCESSING APP " $app
-    package=`~/Library/Android/sdk/build-tools/25.0.3/aapt d xmltree $app AndroidManifest.xml | grep package | awk 'BEGIN {FS="\""}{print $2}'`
+    package=`~/Library/Android/sdk/build-tools/27.0.3/aapt d xmltree $app AndroidManifest.xml | grep package | awk 'BEGIN {FS="\""}{print $2}'`
     echo $package
 
     echo "** RUNNING LOGCAT"
-    adb logcat &> $RESULTDIR$p/mytool.logcat &
+    adb logcat &> $RESULTDIR$p/logcat.log &
 
     echo "** DUMPING INTERMEDIATE COVERAGE "
     cd $DIR
@@ -62,6 +62,13 @@ for p in `cat $DIR/one.txt`; do
     pkill -f adb
     pkill -f sleep
 
+    echo "- Killing All Emulators"
+    #killall emulator
+    adb devices | grep emulator | cut -f1 | while read line; do adb -s $line emu kill; done
+
+    mv $TOOLDIR/src/all.log $RESULTDIR$p/
+
     sleep 5
+
 
 done
