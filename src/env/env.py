@@ -37,7 +37,7 @@ class Environment(object):
         self.observer = GuiObserver(package, device)
         self.executor = Executor(device)
         self.package = package
-        self.visited_states = set()
+        self.visited_states = {}
         if recorda:
             dp = DataProcessor(package)
             dp.process_all_events()
@@ -69,10 +69,18 @@ class Environment(object):
         self.current_state = self.observe_current_state()
 
     def finish_transition(self):
-        self.visited_states.add(self.next_state)
+        if self.next_state in self.visited_states:
+            self.visited_states[self.next_state] += 1
+        else:
+            self.visited_states[self.next_state] = 1
         logger.info("Number of visited states: " + str(len(self.visited_states)))
         self.current_state = self.next_state
         self.next_state = None
+
+    def get_count_reward(self):
+        if self.next_state in self.visited_states and self.visited_states[self.next_state] != 0:
+            return 1/float(self.visited_states[self.next_state])
+        return 0
 
     def get_recorda_reward(self, action):
         reward = 0
@@ -96,7 +104,7 @@ class Environment(object):
         return reward
 
     def get_reward(self, action):
-        reward = self.get_gui_change_reward() + self.get_recorda_reward(action)
+        reward = self.get_gui_change_reward() + self.get_recorda_reward(action) + self.get_count_reward()
         return reward
 
     def get_random_state(self):
