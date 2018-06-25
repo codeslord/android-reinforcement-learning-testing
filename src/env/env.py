@@ -16,7 +16,7 @@ action is a tuple (resource_id, event_type, bounds, text or "")
 
 DEFAULT_REWARD = 0
 RECORDA_WEIGHT = 10
-MAX_CLICK = 3
+MAX_CLICK = 2
 
 logging.basicConfig(filename='all.log', level=logging.DEBUG)
 logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s')
@@ -108,7 +108,7 @@ class Environment(object):
         return reward
 
     def get_random_state(self):
-        return random.sample(self.visited_states, 1)[0]
+        return random.choice(self.visited_states.keys())[0]
 
     def is_out_of_app(self, activity):
         """Check is out of app."""
@@ -132,24 +132,22 @@ class Environment(object):
         if always out of app, back to launcher
         if still out of app, restart the app
         """
-        try:
-            if len(self.observer.actionable_events) == 0:
-                self.back_to_app()
-            else:
-                for i in range(max_click):
-                    random_action = random.choice(self.observer.actionable_events)
-                    self.executor.perform_action(random_action)
-                    if self.device.info['currentPackageName'] == self.package:
-                        break
+        if len(self.observer.actionable_events) == 0:
+            self.back_to_app()
+        else:
+            for i in range(max_click):
+                random_action = random.choice(self.observer.actionable_events)
+                self.executor.perform_action(random_action)
+                if self.device.info['currentPackageName'] == self.package:
+                    break
 
-            if self.device.info['currentPackageName'] != self.package:
-                self.back_to_app()
+        if self.device.info['currentPackageName'] != self.package:
+            self.back_to_app()
 
-            # if self.device.info['currentPackageName'] != self.package:
-            #     pid = subprocess.check_output(["adb", "shell", "ps", "|", "grep", self.package, "|", "awk", "'{ print $2 }'"])
-            #     subprocess.call(["adb", "shell", "kill", str(pid)])
-        except Exception as e:
-            print(str(e))
+        # if self.device.info['currentPackageName'] != self.package:
+        #     pid = subprocess.check_output(["adb", "shell", "ps", "|", "grep", self.package, "|", "awk", "'{ print $2 }'"])
+        #     subprocess.call(["adb", "shell", "kill", str(pid)])
+
 
 #force kill
 # adb shell kill $(adb shell ps | grep YOUR.PACKAGE.NAME | awk '{ print $2 }')
