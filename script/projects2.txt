@@ -6,3 +6,4 @@ tippy_1.1.3/
 LearnMusicNotes/
 WorldClock/
 weight-chart/
+MyExpenses/
