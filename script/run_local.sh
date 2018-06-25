@@ -32,7 +32,7 @@ for p in `cat $DIR/one.txt`; do
     app=`ls bin/*-debug.apk`
     adb install bin/*-debug.apk
     echo "** PROCESSING APP " $app
-    package=`~/Library/Android/sdk/build-tools/27.0.3/aapt d xmltree $app AndroidManifest.xml | grep package | awk 'BEGIN {FS="\""}{print $2}'`
+    package=`aapt d xmltree $app AndroidManifest.xml | grep package | awk 'BEGIN {FS="\""}{print $2}'`
     echo $package
 
     echo "** RUNNING LOGCAT"

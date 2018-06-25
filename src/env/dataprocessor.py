@@ -213,7 +213,7 @@ class DataProcessor:
                     for action in recorda_raw_actions:
                         if action['eventType'] in ACTION_MAPPING:
                             rid = action['resource-id'] if "resource-id" in action else ""
-                            parsed_action = (action['className'], ACTION_MAPPING[action['eventType']], rid, action['eventText'])
+                            parsed_action = (action['className'], ACTION_MAPPING[action['eventType']], rid)
                             transitions.append((filename[:-5], parsed_action))
         reward = dict(Counter(transition for transition in transitions))
         return reward

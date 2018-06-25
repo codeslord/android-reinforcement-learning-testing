@@ -26,7 +26,7 @@ class Agent(object):
         for action in state[1]:
             self.q_value[state][action] = DEFAULT_Q
 
-    def select_next_action(self, current_state):
+    def select_next_action(self, current_state, epsilon):
         if current_state not in self.q_value:
             self.add_state(current_state)
         r = random.uniform(0.0, 1.0)
@@ -34,11 +34,13 @@ class Agent(object):
             logger.info('No action available to select!')
             return None
         else:
-            if r < self.epsilon:
+            if r < epsilon:
+                #select randomly with probability epsilon
                 action = random.choice(current_state[1])
                 logger.info('Select randomly')
                 return action
             else:
+                #select highest q with probability 1-epsilon
                 max_q_action = max(self.q_value.iteritems(), key=operator.itemgetter(1))[0]
                 logger.info("Select action with highest q value")
                 return max_q_action

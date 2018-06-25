@@ -79,10 +79,9 @@ class GuiObserver:
             else:
                 event_type = None
             if event_type:
-                all_actions.append((node.attrib['class'], event_type, node.attrib['resource-id'], node.attrib['text'], node.attrib['bounds']))
+                all_actions.append((node.attrib['class'], event_type, node.attrib['resource-id'], node.attrib['bounds']))
                 if node.attrib["package"] == self.package or node.attrib["resource-id"] == "com.android.systemui:id/back" or node.attrib["resource-id"] == "com.android.systemui:id/menu":
-                    app_actions.append((node.attrib['class'], event_type, node.attrib['resource-id'],
-                                        node.attrib['text'], node.attrib['bounds']))
+                    app_actions.append((node.attrib['class'], event_type, node.attrib['resource-id'], node.attrib['bounds']))
 
         return tuple(all_actions), tuple(app_actions)
 

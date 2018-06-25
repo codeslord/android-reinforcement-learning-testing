@@ -3,6 +3,7 @@ import cProfile
 import logging
 import pprint
 import sys
+import datetime
 from subprocess import check_output
 
 from tqdm import tqdm  # show progress bar
@@ -28,19 +29,22 @@ APP = {"any": "org.liberty.android.fantastischmemo",
 
 alpha = 1.
 gamma = 0.9
-epsilon_default = 0.8
+epsilon_default = [0.9, 0.1] # epsilon decrease from 0.9 to 0.1
 
 def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_default, recorda=False):
     env = Environment(device, package, recorda)
     agent = Agent(alpha, gamma, epsilon)
+    start = datetime.datetime.now()
 
     for j in tqdm(range(episode)):
         logger.info("------------Episode {}---------------".format(j))
+        e = epsilon[0] - j*(epsilon[0]-epsilon[1])/float(episode)
+        logger.info("Epsilon = {}".format(e))
         try:
             for i in tqdm(range(step)):
                 if not env.current_state:
                     env.set_current_state()
-                action = agent.select_next_action(env.current_state)
+                action = agent.select_next_action(env.current_state, e)
                 if env.transition_to_next_state(action):
                     # If next state is in the app
                     reward = env.get_reward(action)
@@ -57,6 +61,9 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
             # env.back_to_app()
         except Exception as e:
             print(str(e))
+        if datetime.datetime.now() - start > datetime.timedelta(hours=2):
+            logger.info("TIMEOUT 2h")
+            break
 
     """ LOGGING """
     logger.info("#############STATE###########")
