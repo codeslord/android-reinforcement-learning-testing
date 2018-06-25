@@ -7,15 +7,15 @@ RESULTDIR=~/mytooloutput/
 
 
 STEP=25
-EP=100
+EP=200
 
 #source $DIR/env.sh
 
 cd $APPDIR
 
 #for p in `ls -d */`; do
-for p in `cat $DIR/projects2.txt`; do
-#for p in `cat $DIR/one.txt`; do
+#for p in `cat $DIR/projects2.txt`; do
+for p in `cat $DIR/one.txt`; do
 
     echo "Setting up AVD"
     cd $DIR
@@ -65,6 +65,7 @@ for p in `cat $DIR/projects2.txt`; do
     echo "- Killing All Emulators"
     #killall emulator
     adb devices | grep emulator | cut -f1 | while read line; do adb -s $line emu kill; done
+    adb -s emulator-5554 emu kill
 
     mv $TOOLDIR/src/all.log $RESULTDIR$p/
 

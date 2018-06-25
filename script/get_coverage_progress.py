@@ -22,11 +22,12 @@ if __name__=="__main__":
             if os.path.isdir(coverage_folder):
                 tree = ET.parse(coverage_folder+'/coverage.xml')
                 root = tree.getroot()
-                for data in root.iter('all'):
-                    for child in data:
-                        if child.tag == "coverage":
-                            step.append(child.attrib)
-                            progress[dir].append(step)
+                data = root.find('data')
+                all = data.find('all')
+                for child in all.findall("coverage"):
+                    print(child.attrib)
+                    step.append(child.attrib)
+                progress[dir].append(step)
 
     with open(tool+".json", "w") as f:
         json.dump(progress, f, indent=True)

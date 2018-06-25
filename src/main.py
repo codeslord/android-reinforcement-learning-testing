@@ -36,24 +36,27 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
 
     for j in tqdm(range(episode)):
         logger.info("------------Episode {}---------------".format(j))
-        for i in tqdm(range(step)):
-            if not env.current_state:
-                env.set_current_state()
-            action = agent.select_next_action(env.current_state)
-            if env.transition_to_next_state(action):
-                # If next state is in the app
-                reward = env.get_reward(action)
-                agent.update_q(env.current_state, action, reward, env.next_state)
-                env.finish_transition()
-            else:
-                agent.update_q(env.current_state, action, 0, None)
+        try:
+            for i in tqdm(range(step)):
+                if not env.current_state:
+                    env.set_current_state()
+                action = agent.select_next_action(env.current_state)
+                if env.transition_to_next_state(action):
+                    # If next state is in the app
+                    reward = env.get_reward(action)
+                    agent.update_q(env.current_state, action, reward, env.next_state)
+                    env.finish_transition()
+                else:
+                    agent.update_q(env.current_state, action, 0, None)
 
-        """ 
-        End of and episode, start from a random state from the list of states that have been explored
-        """
-        # random_state = env.get_random_state()
-        # env.jump_to_activity(random_state[0])
-        env.back_to_app()
+            """ 
+            End of and episode, start from a random state from the list of states that have been explored
+            """
+            # random_state = env.get_random_state()
+            # env.jump_to_activity(random_state[0])
+            env.back_to_app()
+        except Exception as e:
+            print(str(e))
 
     """ LOGGING """
     logger.info("#############STATE###########")

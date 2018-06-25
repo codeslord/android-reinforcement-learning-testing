@@ -1,38 +1,11 @@
-com.everysoft.autoanswer_6_src
-com.hectorone.multismssender_13_src
-com.kvance.Nectroid_11_src
-com.zoffcc.applications.aagtl_31_src
-baterrydog
-tippy_1.1.3/
-dialer2
-DivideAndConquer
-hotdeath
-k9mail
 MunchLife
-netcounter
-org.beide.bomber_1_src
-org.jfedor.frozenbubble_13_src
-Photostream
-RandomMusicPlayer
-SyncMyPix
-Book-Catalogue/
-com.evancharlton.mileage_3110_src/
-CountdownTimer/
-cri.sanity_21100_src/
-dalvik-explorer/
-jp.gr.java_conf.hatalab.mnv_40_src/
-MyExpenses/
-net.fercanet.LNM_3_src/
-projectsNEW.txt
-SpriteMethodTest/
-tomdroid-src-0.5.0/
-Translate/
-Wordpress_394/
-aLogCat
 whohasmystuff-1.0.7/
 anymemo-stable-8.3/
+baterrydog
+tippy_1.1.3/
+LearnMusicNote
+WorldClock
 weight-chart/
-passwordmanager
 
 
 
