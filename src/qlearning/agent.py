@@ -33,16 +33,17 @@ class Agent(object):
         if not current_state[1]:
             logger.info('No action available to select!')
             return None
+            # TODO handle this
         else:
             if r < epsilon:
                 #select randomly with probability epsilon
                 action = random.choice(current_state[1])
-                logger.info('Select randomly')
+                logger.info('Select randomly {}'.format(action))
                 return action
             else:
                 #select highest q with probability 1-epsilon
-                max_q_action = max(self.q_value.iteritems(), key=operator.itemgetter(1))[0]
-                logger.info("Select action with highest q value")
+                max_q_action = max(self.q_value[current_state].iteritems(), key=operator.itemgetter(1))[0]
+                logger.info("Select action with highest q value {}".format(max_q_action))
                 return max_q_action
 
     def update_q(self, current_state, action, reward, next_state):

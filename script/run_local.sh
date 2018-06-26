@@ -7,7 +7,7 @@ RESULTDIR=~/mytooloutput/
 
 
 STEP=25
-EP=200
+EP=20
 
 #source $DIR/env.sh
 

@@ -3,7 +3,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SCRIPTDIR=/home/vagrant/scripts/
 APPDIR=/home/vagrant/subjects/
-RESULTDIR=/vagrant/results/`hostname`/mytool/
+RESULTDIR=/vagrant/results/`hostname`/mytool2h/
 
 TOOLDIR=/vagrant/android-reinforcement-learning-testing
 
@@ -44,7 +44,7 @@ for p in `cat $DIR/projects2.txt`; do
     #cd $TOOLDIR
     # . ./venv/bin/activate
     cd $TOOLDIR/src
-    timeout 1h python main.py emulator-5554 $package $STEP $EP
+    timeout 2h python main.py emulator-5554 $package $STEP $EP
 
 
     echo "-- FINISHED RUNNING MY TOOL"
@@ -56,5 +56,7 @@ for p in `cat $DIR/projects2.txt`; do
 
     killall dumpCoverage.sh
     killall adb
+
+    mv $TOOLDIR/src/all.log $RESULTDIR$p/
 
 done

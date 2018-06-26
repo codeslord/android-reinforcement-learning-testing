@@ -112,15 +112,14 @@ class Executor:
 
     def perform_action(self, event):
         """Perform an action base on event type."""
-        if event[1] == 'click':
-            if 'Text' in event[0]:
-                # print '------contain text-------'
-                return self.perform_click_and_text(event)
+        if event[1] == 'click' or event[1] == 'check':
             return self.perform_click(event)
         elif event[1] == 'scroll':
             return self.perform_scroll(event)
         elif event[1] == 'long-click':
             return self.perform_longclick(event)
+        elif event[1] == 'text':
+            return self.perform_click_and_text(event)
         else:
             return False
 

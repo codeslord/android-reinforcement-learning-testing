@@ -44,9 +44,42 @@ class GuiObserver:
 
     def get_actionable_events(self, event_type, tree):
         """Get all given event_type event."""
-        rexstr = ".//*[@" + event_type + "='true']"
-        all_given_events = tree.findall(rexstr)
+        all_given_events = tree.findall(".//*[@" + event_type + "='true']")
         return all_given_events
+
+    def get_all_actions(self, root):
+        """
+        Return the current GUI state, i.e the tuple of GUI components at that state
+        A GUI component is defined by a tuple (gui_type, event_type, coordinate). We don't care about content
+        :return: GUI state - tuple
+        """
+        all_actions = ()
+        app_actions = ()
+        for node in root.findall(".//*[@clickable='true']"):
+            if 'EditText' in node.attrib['class']:
+                type = 'text'
+            else:
+                type = 'click'
+            all_actions += ((node.attrib['class'], type, node.attrib['resource-id'], node.attrib['bounds']),)
+            if node.attrib["package"] == self.package or node.attrib[
+                "resource-id"] == "com.android.systemui:id/back" or node.attrib[
+                "resource-id"] == "com.android.systemui:id/menu":
+                app_actions += ((node.attrib['class'], type, node.attrib['resource-id'], node.attrib['bounds']),)
+
+        for node in root.findall(".//*[@long-clickable='true']"):
+            if 'EditText' not in node.attrib['class']:
+                all_actions += ((node.attrib['class'], 'long-click', node.attrib['resource-id'], node.attrib['bounds']),)
+                if node.attrib["package"] == self.package:
+                    app_actions += ((node.attrib['class'], 'long-click', node.attrib['resource-id'], node.attrib['bounds']),)
+        for node in root.findall(".//*[@checkable='true']"):
+            all_actions += ((node.attrib['class'], 'check', node.attrib['resource-id'], node.attrib['bounds']),)
+            if node.attrib["package"] == self.package:
+                app_actions += ((node.attrib['class'], 'check', node.attrib['resource-id'], node.attrib['bounds']),)
+        for node in root.findall(".//*[@scrollable='true']"):
+            all_actions += ((node.attrib['class'], 'scroll', node.attrib['resource-id'], node.attrib['bounds']),)
+            if node.attrib["package"] == self.package:
+                app_actions += ((node.attrib['class'], 'scroll', node.attrib['resource-id'], node.attrib['bounds']),)
+        return all_actions, app_actions
 
     def get_all_actionable_events(self, tree):
         """Get all actionable events from given hierarchy.xml path."""
@@ -80,7 +113,9 @@ class GuiObserver:
                 event_type = None
             if event_type:
                 all_actions.append((node.attrib['class'], event_type, node.attrib['resource-id'], node.attrib['bounds']))
-                if node.attrib["package"] == self.package or node.attrib["resource-id"] == "com.android.systemui:id/back" or node.attrib["resource-id"] == "com.android.systemui:id/menu":
+                if node.attrib["package"] == self.package or \
+                        (node.attrib["resource-id"] == "com.android.systemui:id/back" and event_type == 'click') \
+                        or (node.attrib["resource-id"] == "com.android.systemui:id/menu" and event_type == 'click'):
                     app_actions.append((node.attrib['class'], event_type, node.attrib['resource-id'], node.attrib['bounds']))
 
         return tuple(all_actions), tuple(app_actions)
@@ -138,9 +173,9 @@ class GuiObserver:
         """
         dd = self.device.dump().encode('utf-8')
         tree = ET.ElementTree(ET.fromstring(dd))
-        self.passing_actionable_to_children(tree.getroot(), False, False, False)
+        # self.passing_actionable_to_children(tree.getroot(), False, False, False)
         self.activity = self.get_current_activity()
-        self.actionable_events, self.app_actions = self.get_all_actionable_events(tree)
+        self.actionable_events, self.app_actions = self.get_all_actions(tree)
 
     def reset(self):
         self.activity = None
