@@ -7,19 +7,19 @@ RESULTDIR=~/mytooloutput/
 
 
 STEP=25
-EP=20
+EP=200
 
 #source $DIR/env.sh
 
 cd $APPDIR
 
 #for p in `ls -d */`; do
-#for p in `cat $DIR/projects2.txt`; do
-for p in `cat $DIR/one.txt`; do
+for p in `cat $DIR/projects2.txt`; do
+#for p in `cat $DIR/one.txt`; do
 
     echo "Setting up AVD"
     cd $DIR
-    ./setupEmu.sh android-23-2
+    ./setupEmu.sh galaxy-23
 
     echo "@@@@@@ Processing project " $p "@@@@@@@"
     mkdir -p $RESULTDIR$p

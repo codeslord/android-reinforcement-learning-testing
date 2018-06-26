@@ -113,6 +113,8 @@ class Executor:
     def perform_action(self, event):
         """Perform an action base on event type."""
         if event[1] == 'click' or event[1] == 'check':
+            if event[2] == "com.android.systemui:id/menu":
+                return self.device.press.menu()
             return self.perform_click(event)
         elif event[1] == 'scroll':
             return self.perform_scroll(event)

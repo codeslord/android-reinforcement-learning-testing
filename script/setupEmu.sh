@@ -1,14 +1,14 @@
 #!/bin/bash
 
-#echo "- Deleting Emulator" $1
-#android delete avd -n $1
-#
-#echo "- Copying emulator template"
-#cp -r ./avd_templates/$1.* ~/.android/avd/
+echo "- Deleting Emulator" $1
+android delete avd -n $1
+
+echo "- Copying emulator template"
+cp -r ~/avds/$1.* ~/.android/avd/
 
 echo "- Starting emulator"
 
-~/Library/Android/sdk/emulator/emulator -avd $1 -wipe-data &
+~/Library/Android/sdk/emulator/emulator -avd $1 &
 
 date1=$(date +"%s")
 

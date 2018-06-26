@@ -57,7 +57,7 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
             End of and episode, start from a random state from the list of states that have been explored
             """
             random_state = env.get_random_state()
-            env.jump_to_activity(random_state[0])
+            env.jump_to_activity(random_state)
             # env.back_to_app()
         except Exception as e:
             print(str(e))

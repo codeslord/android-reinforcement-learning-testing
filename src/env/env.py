@@ -50,7 +50,9 @@ class Environment(object):
 
     def transition_to_next_state(self, action):
         if not action:
-            subprocess.call(['adb', 'shell', 'monkey', '-p', self.package, '1'])
+            self.kill_app()
+            self.back_to_app()
+            #subprocess.call(['adb', 'shell', 'monkey', '-p', self.package, '1'])
         else:
             self.executor.perform_action(action)
         time.sleep(0.2)
@@ -60,6 +62,9 @@ class Environment(object):
             self.handle_out_of_app(MAX_CLICK)
             self.next_state = None
             self.current_state = self.observe_current_state()
+            return None
+        elif "Application Error" in next_state[0]:
+            self.kill_app()
             return None
         self.next_state = next_state
         # If next state is out of app, return None
@@ -118,13 +123,17 @@ class Environment(object):
             return True
 
     def back_to_app(self):
-        """Go back."""
         logger.info('backtoapp')
         subprocess.call(['adb', 'shell', 'monkey', '-p', self.package, '-c', 'android.intent.category.LAUNCHER', '1'])
 
     def jump_to_activity(self, activity):
         output = subprocess.check_output(['adb', 'shell', 'am', 'start', '-n', '{}/{}'.format(self.package, activity)])
+        logger.info("Jump to activity {} : {}".format(activity, output))
         return output
+
+    def kill_app(self):
+        output = subprocess.check_output(['adb', 'shell', 'am', 'force-stop', self.package])
+        logger.info("Kill app: {}".format(output))
 
     def handle_out_of_app(self, max_click):
         """
