@@ -37,7 +37,7 @@ for p in `cat $DIR/projects2.txt`; do
     adb logcat &> $RESULTDIR$p/mytool.logcat &
 
     echo "** DUMPING INTERMEDIATE COVERAGE "
-    cd $DIR
+    cd $SCRIPTDIR
     ./dumpCoverage.sh $RESULTDIR$p &> $RESULTDIR$p/icoverage.log &
 
     echo "** RUNNING MY TOOL FOR" $package
@@ -57,6 +57,7 @@ for p in `cat $DIR/projects2.txt`; do
     killall dumpCoverage.sh
     killall adb
 
-    mv $TOOLDIR/src/all.log $RESULTDIR$p/
+    cd $DIR
+    mv ../src/mytool.log $RESULTDIR$p/
 
 done

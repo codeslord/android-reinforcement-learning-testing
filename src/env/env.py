@@ -18,8 +18,6 @@ DEFAULT_REWARD = 0
 RECORDA_WEIGHT = 10
 MAX_CLICK = 2
 
-logging.basicConfig(filename='all.log', level=logging.DEBUG)
-logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 class Environment(object):
@@ -42,6 +40,7 @@ class Environment(object):
             dp = DataProcessor(package)
             dp.process_all_events()
             self.recorda_reward = dp.get_recorda_reward()
+            logger.info(self.recorda_reward)
 
     def observe_current_state(self):
         self.observer.dump_gui()
@@ -50,8 +49,10 @@ class Environment(object):
 
     def transition_to_next_state(self, action):
         if not action:
-            self.kill_app()
-            self.back_to_app()
+            # No action to select
+            self.device.press.back()
+            # self.kill_app()
+            # self.back_to_app()
             #subprocess.call(['adb', 'shell', 'monkey', '-p', self.package, '1'])
         else:
             self.executor.perform_action(action)
@@ -78,23 +79,23 @@ class Environment(object):
             self.visited_states[self.next_state] += 1
         else:
             self.visited_states[self.next_state] = 1
-        logger.info("Number of visited states: " + str(len(self.visited_states)))
         self.current_state = self.next_state
         self.next_state = None
 
     def get_count_reward(self):
         if self.next_state in self.visited_states and self.visited_states[self.next_state] != 0:
+            # logger.info("Count reward {}".format(1/float(self.visited_states[self.next_state])))
             return 1/float(self.visited_states[self.next_state])
         return 0
 
     def get_recorda_reward(self, action):
         reward = 0
-        if action and action in self.recorda_reward:
+        if action:
             simplified_action = action[:-1]
-            print(simplified_action)
             key = (self.current_state[0], simplified_action)
             if key in self.recorda_reward:
                 reward = 1/float(self.recorda_reward[key])
+        # logger.info("Recorda reward {}".format(reward))
         return reward
 
     def get_gui_change_reward(self):
@@ -106,6 +107,7 @@ class Environment(object):
                 # If next state has no action, return reward 0
                 shared_items = set(current_actions) & set(next_actions)
                 reward = (len(next_actions) - len(shared_items))/float(len(next_actions))
+        # logger.info("GUI reward {}".format(reward))
         return reward
 
     def get_reward(self, action):

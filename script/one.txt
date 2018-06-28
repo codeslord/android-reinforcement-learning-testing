@@ -1,1 +1,5 @@
+whohasmystuff-1.0.7/
 MyExpenses/
+WorldClock/
+tippy_1.1.3/
+

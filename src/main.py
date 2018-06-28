@@ -1,7 +1,6 @@
 import argparse
 import cProfile
 import logging
-import pprint
 import sys
 import datetime
 from subprocess import check_output
@@ -12,8 +11,9 @@ from uiautomator import Device
 from env.env import Environment
 from qlearning.agent import Agent
 
+log_file = "mytool.log"
 # pp = pprint.PrettyPrinter(indent=4)
-logging.basicConfig(filename='all.log', level=logging.DEBUG)
+logging.basicConfig(filename=log_file, level=logging.DEBUG)
 logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -37,9 +37,9 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
     start = datetime.datetime.now()
 
     for j in tqdm(range(episode)):
+        logger.info("Number of visited states: " + str(len(env.visited_states)))
         logger.info("------------Episode {}---------------".format(j))
         e = epsilon[0] - j*(epsilon[0]-epsilon[1])/float(episode)
-        logger.info("Epsilon = {}".format(e))
         try:
             for i in tqdm(range(step)):
                 if not env.current_state:
@@ -61,9 +61,10 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
             # env.back_to_app()
         except Exception as e:
             print(str(e))
-        if datetime.datetime.now() - start > datetime.timedelta(hours=2):
-            logger.info("TIMEOUT 2h")
-            break
+
+        # if datetime.datetime.now() - start > datetime.timedelta(hours=2):
+        #     logger.info("TIMEOUT 2h")
+        #     break
 
     """ LOGGING """
     logger.info("#############STATE###########")
@@ -92,19 +93,21 @@ if __name__ == "__main__":
     parser.add_argument('episode', help='Number of episode', type=int)
     parser.add_argument('--recorda', action='store_true', default=False)
     args = parser.parse_args()
+    # clear log
+    with open(log_file, 'w'):
+        pass
+
     if not is_device_available(args.device):
-        logger.error('Please connect device' + str(args.device))
+        print('Please connect device' + str(args.device))
         sys.exit()
     d = Device(args.device)
     package = args.package
     recorda = args.recorda
 
-    # clear log
-    with open('all.log', 'w'):
-        pass
+
 
     print("USE RECORDA {}".format(recorda))
     epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda=recorda)
-    # cProfile.run('epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda_input_path=recorda_input_path, recorda_output_path=recorda_output_path)', 'profile.tmp')
+    # cProfile.run('epsilon_greedy_strategy(d, package, int(args.step), args.episode, recorda=recorda)', 'profile.tmp')
 
     logger.info('----DONE----')

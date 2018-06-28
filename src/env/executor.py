@@ -6,8 +6,6 @@ from uiautomator import Device
 import subprocess
 from random import randint
 import logging
-logging.basicConfig(filename='all.log', level=logging.DEBUG)
-logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 

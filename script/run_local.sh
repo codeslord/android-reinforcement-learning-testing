@@ -14,12 +14,12 @@ EP=200
 cd $APPDIR
 
 #for p in `ls -d */`; do
-for p in `cat $DIR/projects2.txt`; do
-#for p in `cat $DIR/one.txt`; do
+# for p in `cat $DIR/projects2.txt`; do
+for p in `cat $DIR/one.txt`; do
 
     echo "Setting up AVD"
     cd $DIR
-    ./setupEmu.sh galaxy-23
+    ./setupEmu.sh android-23
 
     echo "@@@@@@ Processing project " $p "@@@@@@@"
     mkdir -p $RESULTDIR$p
@@ -67,7 +67,7 @@ for p in `cat $DIR/projects2.txt`; do
     adb devices | grep emulator | cut -f1 | while read line; do adb -s $line emu kill; done
     adb -s emulator-5554 emu kill
 
-    mv $TOOLDIR/src/all.log $RESULTDIR$p/
+    mv $TOOLDIR/src/mytool.log $RESULTDIR$p/
 
     sleep 10
 

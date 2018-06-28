@@ -62,7 +62,7 @@ class GuiObserver:
                 type = 'click'
             all_actions += ((node.attrib['class'], type, node.attrib['resource-id'], node.attrib['bounds']),)
             if node.attrib["package"] == self.package or node.attrib[
-                "resource-id"] == "com.android.systemui:id/back" or node.attrib[
+                # "resource-id"] == "com.android.systemui:id/back" or node.attrib[
                 "resource-id"] == "com.android.systemui:id/menu":
                 app_actions += ((node.attrib['class'], type, node.attrib['resource-id'], node.attrib['bounds']),)
 

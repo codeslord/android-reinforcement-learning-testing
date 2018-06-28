@@ -1,14 +1,8 @@
 # Test environment
-import json
 import logging
-import os
 import random
 import operator
-import pprint
 
-pp = pprint.PrettyPrinter(indent=4)
-logging.basicConfig(filename='all.log', level=logging.DEBUG)
-logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 DEFAULT_Q = 0
@@ -33,7 +27,6 @@ class Agent(object):
         if not current_state[1]:
             logger.info('No action available to select!')
             return None
-            # TODO handle this
         else:
             if r < epsilon:
                 #select randomly with probability epsilon
@@ -48,7 +41,9 @@ class Agent(object):
 
     def update_q(self, current_state, action, reward, next_state):
         if current_state in self.q_value and action in self.q_value[current_state]:
-            if next_state in self.q_value:
+            if action[2] == "com.android.systemui:id/back":
+                value = 0
+            elif next_state in self.q_value:
                 value = reward + self.gamma * max(list(self.q_value[next_state].values()))
             else:
                 value = reward
