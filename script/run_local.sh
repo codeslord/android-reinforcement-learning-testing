@@ -14,8 +14,8 @@ EP=200
 cd $APPDIR
 
 #for p in `ls -d */`; do
-# for p in `cat $DIR/projects2.txt`; do
-for p in `cat $DIR/one.txt`; do
+ for p in `cat $DIR/projects2.txt`; do
+#for p in `cat $DIR/one.txt`; do
 
     echo "Setting up AVD"
     cd $DIR
