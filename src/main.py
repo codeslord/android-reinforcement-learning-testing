@@ -29,7 +29,7 @@ APP = {"any": "org.liberty.android.fantastischmemo",
 
 alpha = 1.
 gamma = 0.9
-epsilon_default = [1, 0.5] # epsilon decrease from 1 to 0.5
+epsilon_default = [1.0, 0.6] # epsilon decrease from 1
 epsilon_step = 100
 
 def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_default, recorda=False):
@@ -39,13 +39,13 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
     logger.info("Epsilon decrease from {} to {} with step {}".format(epsilon_default[0], epsilon_default[1], epsilon_step))
     logger.info("Step = {}, Ep = {}, Alpha = {}, Gamma = {}, Recorda = {}".format(step, episode, alpha, gamma, recorda))
 
-    for j in tqdm(range(episode)):
+    for j in range(episode):
         logger.info("Number of visited states: " + str(len(env.visited_states)))
         logger.info("------------Episode {}---------------".format(j))
         e = epsilon[0] - j*(epsilon[0]-epsilon[1])/float(epsilon_step)
         logger.info("Epsilon: {}".format(e))
         try:
-            for i in tqdm(range(step)):
+            for i in range(step):
                 if not env.current_state:
                     env.set_current_state()
                 action = agent.select_next_action(env.current_state, e)
@@ -67,7 +67,7 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
             print(str(e))
 
         if datetime.datetime.now() - start > datetime.timedelta(hours=1, minutes=5):
-            logger.info("TIMEOUT 1h")
+            logger.info("TIMEOUT 1h 5m")
             break
 
     """ LOGGING """

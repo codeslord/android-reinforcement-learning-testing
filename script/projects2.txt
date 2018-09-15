@@ -1,8 +1,5 @@
-net.fercanet.LNM_3_src
-com.irahul.worldclock_2_src
-whohasmystuff-1.0.7/
-baterrydog
-MyExpenses/
 tippy_1.1.3/
 anymemo-stable-8.3/
 MunchLife
+net.fercanet.LNM_3_src
+com.irahul.worldclock_2_src
