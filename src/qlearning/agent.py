@@ -10,7 +10,7 @@ DEFAULT_Q = 0
 
 class Agent(object):
     def __init__(self, alpha=1.0, gamma=0.9, epsilon=0.8):
-        self.q_value = {}  # {state:{action:value}}
+        self.q_value = {}  # {state: {action: value}}
         self.alpha = alpha #TODO change the formular to take into account alpha
         self.gamma = gamma
         self.epsilon = epsilon

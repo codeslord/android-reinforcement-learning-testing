@@ -46,13 +46,16 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
         logger.info("Epsilon: {}".format(e))
         try:
             for i in range(step):
+                # Step 1
                 if not env.current_state:
                     env.set_current_state()
+                # Step 2
                 action = agent.select_next_action(env.current_state, e)
-                if env.transition_to_next_state(action):
+
+                if env.transition_to_next_state(action):  # Step 3 and 4
                     # If next state is in the app
-                    reward = env.get_reward(action)
-                    agent.update_q(env.current_state, action, reward, env.next_state)
+                    reward = env.get_reward(action)  # Step 5
+                    agent.update_q(env.current_state, action, reward, env.next_state)  # Step 6
                     env.finish_transition()
                 else:
                     agent.update_q(env.current_state, action, 0, None)
@@ -81,7 +84,7 @@ def epsilon_greedy_strategy(device, package, step, episode, epsilon=epsilon_defa
 def is_device_available(device_num):
     """Check whether device is available in adb devices."""
     output = check_output(['adb', 'devices'])
-    if device_num in output:
+    if device_num in str(output):
         return True
     else:
         return False

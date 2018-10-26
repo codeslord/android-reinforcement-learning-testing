@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-APPDIR=~/subjects/
-TOOLDIR=~/vagrant/androtest/android-reinforcement-learning-testing
-RESULTDIR=~/mytooloutput/
+TOOLDIR="$(dirname "$DIR")"
+APPDIR=$TOOLDIR/subjects
+RESULTDIR=$TOOLDIR/results
+EMMADIR=$TOOLDIR/emma
 
 
 STEP=25
 EP=200
 
 #source $DIR/env.sh
+export PATH=~/Library/Android/sdk/build-tools/28.0.2/:$PATH
 
 cd $APPDIR
 
@@ -22,13 +24,13 @@ cd $APPDIR
     ./setupEmu.sh android-23
 
     echo "@@@@@@ Processing project " $p "@@@@@@@"
-    mkdir -p $RESULTDIR$p
-    cd $APPDIR$p
+    mkdir -p $RESULTDIR/$p
+    cd $APPDIR/$p
     echo "** BUILDING APP " $p
     #ant clean
-    #ant emma debug install &> $RESULTDIR$p/build.log
-    #ant installd &> $RESULTDIR$p/install.log
-    cp bin/coverage.em $RESULTDIR$p/
+    #ant emma debug install &> $RESULTDIR/$p/build.log
+    #ant installd &> $RESULTDIR/$p/install.log
+    cp bin/coverage.em $RESULTDIR/$p/
     app=`ls bin/*-debug.apk`
     adb install bin/*-debug.apk
     echo "** PROCESSING APP " $app
@@ -36,11 +38,11 @@ cd $APPDIR
     echo $package
 
     echo "** RUNNING LOGCAT"
-    adb logcat &> $RESULTDIR$p/logcat.log &
+    adb logcat *:E &> $RESULTDIR/$p/logcat.log &
 
     echo "** DUMPING INTERMEDIATE COVERAGE "
     cd $DIR
-    ./dumpCoverage.sh $RESULTDIR$p &> $RESULTDIR$p/icoverage.log &
+    ./dumpCoverage.sh $RESULTDIR/$p &> $RESULTDIR/$p/icoverage.log &
 
     echo "** RUNNING MY TOOL FOR" $package
     cd $TOOLDIR
@@ -51,7 +53,12 @@ cd $APPDIR
 
     echo "-- FINISHED RUNNING MY TOOL"
     adb shell am broadcast -a edu.gatech.m3.emma.COLLECT_COVERAGE
-    adb pull /mnt/sdcard/coverage.ec $RESULTDIR$p/coverage.ec
+    adb pull /mnt/sdcard/coverage.ec $RESULTDIR/$p/coverage.ec
+    mkdir -p $RESULTDIR/${p}coverage #output directory
+    cd $RESULTDIR/${p}coverage
+    srcDir=$APPDIR/${p}src
+    emFile=$RESULTDIR/${p}coverage.em
+    java -cp $EMMADIR/emma.jar emma report -r txt,html,xml -sp $srcDir -in $emFile -in $RESULTDIR/${p}coverage.ec
 
     NOW=$(date +"%m-%d-%Y-%H-%M")
     echo $NOW.$p >> $RESULTDIR/status.log
@@ -67,7 +74,7 @@ cd $APPDIR
     adb devices | grep emulator | cut -f1 | while read line; do adb -s $line emu kill; done
     adb -s emulator-5554 emu kill
 
-    mv $TOOLDIR/src/mytool.log $RESULTDIR$p/
+    mv $TOOLDIR/src/mytool.log $RESULTDIR/$p/
 
     sleep 10
 

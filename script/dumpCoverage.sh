@@ -1,5 +1,9 @@
 #!/bin/bash
-APPDIR=~/Subjects/
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECTDIR="$(dirname "$DIR")"
+APPDIR=$PROJECTDIR/subjects
+EMMADIR=$PROJECTDIR/emma
 
 if [ $# -eq 0 ]
   then
@@ -17,8 +21,8 @@ do
   adb pull /mnt/sdcard/coverage.ec $1/coverage$i.ec
   mkdir -p $1/coverage$i #output directory
   cd $1/coverage$i
-  app= `basename $1`
+  app=`basename $1`
   srcDir=$APPDIR/$app/src
   emFile=$1/coverage.em
-  java -cp $ANDROID_HOME/tools/lib/emma.jar emma report -r txt,html,xml -sp $srcDir -in $emFile -in $1/coverage$i.ec
+  java -cp $EMMADIR/emma.jar emma report -r txt,html,xml -sp $srcDir -in $emFile -in $1/coverage$i.ec
 done

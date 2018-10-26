@@ -17,7 +17,7 @@ class GuiObserver:
         if type(device) is Device:
             self.device = device
         else:
-            print 'ERROR: please input automator device as param.'
+            logger.error('ERROR: please input automator device as param.')
 
     def dup_event(self, actionable_event):
         """Clickable+scrollable = clickable, scrollable."""
@@ -122,9 +122,9 @@ class GuiObserver:
 
     def get_current_activity(self):
         """Get current activity of current package."""
-        output = check_output(['adb', 'shell', 'dumpsys', 'window',
+        output = str(check_output(['adb', 'shell', 'dumpsys', 'window',
                                'windows', '|', 'grep', '-E',
-                               "'mCurrentFocus'"])
+                               "'mCurrentFocus'"]))
         cur_activity = output.split('/')[-1].split('}')[0]
         return cur_activity
 

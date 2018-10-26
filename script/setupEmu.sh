@@ -1,14 +1,20 @@
 #!/bin/bash
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECTDIR="$(dirname "$DIR")"
+AVDDIR=$PROJECTDIR/avds
+
+echo $AVDDIR
+
 echo "- Deleting Emulator" $1
 android delete avd -n $1
 
 echo "- Copying emulator template"
-cp -r ~/avds/$1.* ~/.android/avd/
+cp -r $AVDDIR/$1.* ~/.android/avd/
 
 echo "- Starting emulator"
 
-~/Library/Android/sdk/emulator/emulator -avd $1 &
+~/Library/Android/sdk/emulator/emulator -avd $1 -no-snapshot &
 
 date1=$(date +"%s")
 

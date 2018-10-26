@@ -2,9 +2,9 @@ import random
 import time
 import logging
 import subprocess
-from executor import Executor
-from guiobserver import GuiObserver
-from dataprocessor import DataProcessor
+from .executor import Executor
+from .guiobserver import GuiObserver
+from .dataprocessor import DataProcessor
 
 
 """
@@ -129,12 +129,12 @@ class Environment(object):
         subprocess.call(['adb', 'shell', 'monkey', '-p', self.package, '-c', 'android.intent.category.LAUNCHER', '1'])
 
     def jump_to_activity(self, activity):
-        output = subprocess.check_output(['adb', 'shell', 'am', 'start', '-n', '{}/{}'.format(self.package, activity)])
+        output = str(subprocess.check_output(['adb', 'shell', 'am', 'start', '-n', '{}/{}'.format(self.package, activity)]))
         logger.info("Jump to activity {} : {}".format(activity, output))
         return output
 
     def kill_app(self):
-        output = subprocess.check_output(['adb', 'shell', 'am', 'force-stop', self.package])
+        output = str(subprocess.check_output(['adb', 'shell', 'am', 'force-stop', self.package]))
         logger.info("Kill app: {}".format(output))
 
     def handle_out_of_app(self, max_click):
