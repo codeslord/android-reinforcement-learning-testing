@@ -6,3 +6,7 @@ execlog
 avds/*
 src/*/*.pyc
 results/*
+src/env/__pycache__/*
+src/qlearning/__pycache__/*
+.DS_Store
+subjects/
